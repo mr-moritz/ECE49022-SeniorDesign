@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2023-01-17T19:57:25.452Z" agent="5.0 (Windows)" etag="1_Cz9yBP89KoVh9uxwOt" version="20.4.0" type="github">
+<mxfile host="app.diagrams.net" modified="2023-01-17T19:59:06.747Z" agent="5.0 (Windows)" etag="m_Ax9GV4wwe6LV5FdFrh" version="20.4.0" type="github">
   <diagram id="53H6BvzxoNb18j3WzgGm" name="Page-1">
     <mxGraphModel dx="1278" dy="548" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
@@ -72,6 +72,19 @@
           <mxGeometry width="50" height="50" relative="1" as="geometry">
             <mxPoint x="400" y="470" as="sourcePoint" />
             <mxPoint x="450" y="420" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="6v1FFj7GnsHJdZK_Fbzz-5" value="RESET &lt;br&gt;BUTTON" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="420" y="600" width="40" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="6v1FFj7GnsHJdZK_Fbzz-6" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.75;entryY=1;entryDx=0;entryDy=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" edge="1" parent="1" source="6v1FFj7GnsHJdZK_Fbzz-5" target="lBYOLYuMJl4HIpq0nPhW-6">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="400" y="650" as="sourcePoint" />
+            <mxPoint x="450" y="600" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="440" y="520" />
+              <mxPoint x="378" y="520" />
+            </Array>
           </mxGeometry>
         </mxCell>
       </root>
