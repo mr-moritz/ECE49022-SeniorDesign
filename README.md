@@ -12,4 +12,4 @@ Members:
 - Chris Stephen
 
 ## GUI
-The GUI for this project will be utilized via a Rasperry Pi 7" touchscreen.
+The user will interact with the GUI for this project using a Raspberry Pi 7" touchscreen. The GUI was built using PySimpleGUI to create all button, menus, submenus, and layouts. A goal for this GUI is for it to be very simple to use, therefore for every action the user must never go past more than 3 submenus. The Python script to generate this GUI can be found at `Cary_Microcomputer/User_Interface.py`
