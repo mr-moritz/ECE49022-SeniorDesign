@@ -46,7 +46,7 @@ while True:
         window.Hide()
         win2_col1 = [[sg.Text('List of current users:', size=(20, 2), font=('Any', 25), justification='center')],
                      [sg.Text('\n'.join([str(i) for i in users]),
-                              font=('Any', 15), justification='left')]]
+                              font=('Any', 15), justification='left', key='-USR-')]]
         win2_col2 = [[sg.Text('What would you like to do?', size=(25, 2),
                               font=('Any', 25), justification='center', pad=((0, 0), (50, 0)))],
                      [sg.Button('Add a New User', key='-ADD-', font=('Any', 10),
@@ -74,25 +74,31 @@ while True:
                 win2.Hide()
                 win2_active = False
                 initials = list(string.ascii_uppercase)
-                print(initials)
-                win3_col1 = [[sg.Text('Add a new user using the buttons below.', font=('Any', 25), expand_x=True, expand_y=False, size=(15, 2), justification='c',
-                                      pad=(0, 20))],
-                             [sg.Spin(initials, expand_x=True, readonly=True, enable_events=True, text_color='black', expand_y=True),
-                              sg.Spin(initials, expand_x=True, readonly=True,
-                                      enable_events=True, text_color='black', expand_y=True),
-                              sg.Spin(initials, expand_x=True, readonly=True, enable_events=True, text_color='black', expand_y=True)],
+                roles = ["Caregiver", "User"]
+                win3_col1 = [[sg.Text('Add a new user using the buttons below.', font=('Any', 25),
+                                expand_x=True, expand_y=False, size=(15, 2), justification='c', pad=(0, 20))],
+                             [sg.Text("First Initial"), sg.Spin(initials, expand_x=True, readonly=True, enable_events=True, text_color='black', expand_y=True, key='-IN1-'),
+                              sg.Text("Second Initial"), sg.Spin(initials, expand_x=True, readonly=True,
+                                enable_events=True, text_color='black', expand_y=True, key='-IN2-'),
+                              sg.Text("Third Initial"), sg.Spin(initials, expand_x=True, readonly=True, enable_events=True, text_color='black', expand_y=True, key='-IN3-'),
+                              sg.Text("Role"), sg.Spin(roles, expand_x=True, readonly=True, enable_events=True, text_color='black', expand_y=True, key='-ROL-')],
                              [sg.Button('Save', font=('Any', 10), expand_x=True, expand_y=False, size=(15, 2), key='-SAVE-', pad=(0, 20)),
                               sg.Button('Cancel', font=('Any', 10), expand_x=True, expand_y=False, size=(15, 2), key='-CANC-', pad=(0, 20))]]
                 win3 = sg.Window('Add New User', win3_col1, finalize=True, size=(
                     800, 480), element_justification='c')
                 while True:
-                    ev3, vals2 = win3.Read()
+                    ev3, vals3 = win3.Read()
                     if ev3 == sg.WIN_CLOSED or ev3 == '-CANC-':
                         win3.Close()
                         win2.UnHide()
                         break
                     elif ev3 == '-SAVE-':
+                        person = str(vals3['-IN1-'] + vals3['-IN2-'] + vals3['-IN3-'] + " - " + vals3['-ROL-'])
+                        with open(os.path.abspath('Cary_Microcomputer/users.txt'), 'a') as f:
+                            f.write(person + '\n')
+                            users.append(person)
                         win3.Close()
+                        win2['-USR-'].update('\n'.join([str(i) for i in users]))
                         win2.UnHide()
 
     # Update the time :
