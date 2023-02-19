@@ -49,6 +49,8 @@ extern "C" {
 
 /* USER CODE END EM */
 
+void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
+
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
 
@@ -57,14 +59,24 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define User_Pin GPIO_PIN_0
-#define User_GPIO_Port GPIOA
+#define User_Button_Pin GPIO_PIN_0
+#define User_Button_GPIO_Port GPIOA
+#define Agitator_Motor_Pin GPIO_PIN_1
+#define Agitator_Motor_GPIO_Port GPIOA
+#define Dispenser_Motor_Pin GPIO_PIN_2
+#define Dispenser_Motor_GPIO_Port GPIOA
+#define Lock_Motor_Pin GPIO_PIN_3
+#define Lock_Motor_GPIO_Port GPIOA
 #define Blink_Pin GPIO_PIN_8
 #define Blink_GPIO_Port GPIOC
 #define SWDIO_Pin GPIO_PIN_13
 #define SWDIO_GPIO_Port GPIOA
 #define SWCLK_Pin GPIO_PIN_14
 #define SWCLK_GPIO_Port GPIOA
+#define RPI_SCL_Pin GPIO_PIN_6
+#define RPI_SCL_GPIO_Port GPIOB
+#define RPI_SDA_Pin GPIO_PIN_7
+#define RPI_SDA_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 
