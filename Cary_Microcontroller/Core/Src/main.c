@@ -39,8 +39,6 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-ADC_HandleTypeDef hadc;
-
 I2C_HandleTypeDef hi2c1;
 
 TIM_HandleTypeDef htim2;
@@ -54,13 +52,15 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_TIM2_Init(void);
-static void MX_ADC_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+float dispenser_a_pwms[7] = { 24 , 40.25 , 62.75 , 74 , 85.25 , 107.75 , 124 };
+float dispenser_b_pwms[7] = { 124 , 107.75 , 85.25 , 74 , 62.75 , 40.25 , 24 };
+int lock_pwms[2] = { 74 , 124 };
 
 /* USER CODE END 0 */
 
@@ -94,7 +94,6 @@ int main(void)
   MX_GPIO_Init();
   MX_I2C1_Init();
   MX_TIM2_Init();
-  MX_ADC_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start(&htim2);
   HAL_TIM_PWM_Start(&htim2,TIM_CHANNEL_2);
@@ -104,28 +103,22 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  int agitator_pwm = 0;
-  int dispenser_pwm = 0;
-  int lock_pwm = 0;
   int button_press = 0;
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  if (HAL_GPIO_ReadPin(GPIOA,User_Button_Pin) == GPIO_PIN_SET)
+	  if (HAL_GPIO_ReadPin(GPIOA,User_Pin) == GPIO_PIN_SET)
 	  {
-		  button_press = (button_press + 1) % 2;
-		  agitator_pwm = button_press == 1 ? 0 : 275;
-		  dispenser_pwm = button_press == 1 ? 25 : 125;
-		  lock_pwm = button_press == 1 ? 75 : 125;
-		  __HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_2, 275);
-		  HAL_Delay(745);
-		  __HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_2, 0);
-		  __HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_3, dispenser_pwm);
-		  __HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_4, lock_pwm);
+		  button_press = (button_press + 1) % 7;
+		  __HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_2, dispenser_a_pwms[button_press]);
+		  __HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_3, dispenser_b_pwms[button_press]);
+		  HAL_Delay(500);
+		  __HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_2, dispenser_a_pwms[0]);
+		  __HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_3, dispenser_b_pwms[7]);
+		  __HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_4, lock_pwms[button_press % 2]);
 		  HAL_GPIO_TogglePin(GPIOC,Blink_Pin);
-		  HAL_Delay(250);
 	  }
   }
   /* USER CODE END 3 */
@@ -144,11 +137,9 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_HSI14;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSI14State = RCC_HSI14_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.HSI14CalibrationValue = 16;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
   RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL12;
@@ -176,60 +167,6 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-}
-
-/**
-  * @brief ADC Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_ADC_Init(void)
-{
-
-  /* USER CODE BEGIN ADC_Init 0 */
-
-  /* USER CODE END ADC_Init 0 */
-
-  ADC_ChannelConfTypeDef sConfig = {0};
-
-  /* USER CODE BEGIN ADC_Init 1 */
-
-  /* USER CODE END ADC_Init 1 */
-
-  /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
-  */
-  hadc.Instance = ADC1;
-  hadc.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV1;
-  hadc.Init.Resolution = ADC_RESOLUTION_12B;
-  hadc.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc.Init.ScanConvMode = ADC_SCAN_DIRECTION_FORWARD;
-  hadc.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
-  hadc.Init.LowPowerAutoWait = DISABLE;
-  hadc.Init.LowPowerAutoPowerOff = DISABLE;
-  hadc.Init.ContinuousConvMode = DISABLE;
-  hadc.Init.DiscontinuousConvMode = DISABLE;
-  hadc.Init.ExternalTrigConv = ADC_SOFTWARE_START;
-  hadc.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
-  hadc.Init.DMAContinuousRequests = DISABLE;
-  hadc.Init.Overrun = ADC_OVR_DATA_PRESERVED;
-  if (HAL_ADC_Init(&hadc) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /** Configure for the selected ADC regular channel to be converted.
-  */
-  sConfig.Channel = ADC_CHANNEL_4;
-  sConfig.Rank = ADC_RANK_CHANNEL_NUMBER;
-  sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
-  if (HAL_ADC_ConfigChannel(&hadc, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN ADC_Init 2 */
-
-  /* USER CODE END ADC_Init 2 */
-
 }
 
 /**
@@ -328,6 +265,10 @@ static void MX_TIM2_Init(void)
   sConfigOC.Pulse = 0;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
   if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
   {
     Error_Handler();
@@ -364,11 +305,11 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(Blink_GPIO_Port, Blink_Pin, GPIO_PIN_SET);
 
-  /*Configure GPIO pin : User_Button_Pin */
-  GPIO_InitStruct.Pin = User_Button_Pin;
+  /*Configure GPIO pin : User_Pin */
+  GPIO_InitStruct.Pin = User_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(User_Button_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(User_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : Blink_Pin */
   GPIO_InitStruct.Pin = Blink_Pin;

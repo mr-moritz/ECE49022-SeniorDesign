@@ -79,67 +79,6 @@ void HAL_MspInit(void)
 }
 
 /**
-* @brief ADC MSP Initialization
-* This function configures the hardware resources used in this example
-* @param hadc: ADC handle pointer
-* @retval None
-*/
-void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
-{
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
-  if(hadc->Instance==ADC1)
-  {
-  /* USER CODE BEGIN ADC1_MspInit 0 */
-
-  /* USER CODE END ADC1_MspInit 0 */
-    /* Peripheral clock enable */
-    __HAL_RCC_ADC1_CLK_ENABLE();
-
-    __HAL_RCC_GPIOA_CLK_ENABLE();
-    /**ADC GPIO Configuration
-    PA4     ------> ADC_IN4
-    */
-    GPIO_InitStruct.Pin = GPIO_PIN_4;
-    GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-  /* USER CODE BEGIN ADC1_MspInit 1 */
-
-  /* USER CODE END ADC1_MspInit 1 */
-  }
-
-}
-
-/**
-* @brief ADC MSP De-Initialization
-* This function freeze the hardware resources used in this example
-* @param hadc: ADC handle pointer
-* @retval None
-*/
-void HAL_ADC_MspDeInit(ADC_HandleTypeDef* hadc)
-{
-  if(hadc->Instance==ADC1)
-  {
-  /* USER CODE BEGIN ADC1_MspDeInit 0 */
-
-  /* USER CODE END ADC1_MspDeInit 0 */
-    /* Peripheral clock disable */
-    __HAL_RCC_ADC1_CLK_DISABLE();
-
-    /**ADC GPIO Configuration
-    PA4     ------> ADC_IN4
-    */
-    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_4);
-
-  /* USER CODE BEGIN ADC1_MspDeInit 1 */
-
-  /* USER CODE END ADC1_MspDeInit 1 */
-  }
-
-}
-
-/**
 * @brief I2C MSP Initialization
 * This function configures the hardware resources used in this example
 * @param hi2c: I2C handle pointer
@@ -168,6 +107,9 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef* hi2c)
 
     /* Peripheral clock enable */
     __HAL_RCC_I2C1_CLK_ENABLE();
+    /* I2C1 interrupt Init */
+    HAL_NVIC_SetPriority(I2C1_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(I2C1_IRQn);
   /* USER CODE BEGIN I2C1_MspInit 1 */
 
   /* USER CODE END I2C1_MspInit 1 */
@@ -199,6 +141,8 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef* hi2c)
 
     HAL_GPIO_DeInit(RPI_SDA_GPIO_Port, RPI_SDA_Pin);
 
+    /* I2C1 interrupt DeInit */
+    HAL_NVIC_DisableIRQ(I2C1_IRQn);
   /* USER CODE BEGIN I2C1_MspDeInit 1 */
 
   /* USER CODE END I2C1_MspDeInit 1 */
@@ -242,8 +186,9 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef* htim)
     PA1     ------> TIM2_CH2
     PA2     ------> TIM2_CH3
     PA3     ------> TIM2_CH4
+    PA5     ------> TIM2_CH1
     */
-    GPIO_InitStruct.Pin = Agitator_Motor_Pin|Dispenser_Motor_Pin|Lock_Motor_Pin;
+    GPIO_InitStruct.Pin = Dispenser_A_Pin|Dispenser_B_Pin|Lock_Pin|Speaker_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;

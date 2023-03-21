@@ -59,14 +59,16 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define User_Button_Pin GPIO_PIN_0
-#define User_Button_GPIO_Port GPIOA
-#define Agitator_Motor_Pin GPIO_PIN_1
-#define Agitator_Motor_GPIO_Port GPIOA
-#define Dispenser_Motor_Pin GPIO_PIN_2
-#define Dispenser_Motor_GPIO_Port GPIOA
-#define Lock_Motor_Pin GPIO_PIN_3
-#define Lock_Motor_GPIO_Port GPIOA
+#define User_Pin GPIO_PIN_0
+#define User_GPIO_Port GPIOA
+#define Dispenser_A_Pin GPIO_PIN_1
+#define Dispenser_A_GPIO_Port GPIOA
+#define Dispenser_B_Pin GPIO_PIN_2
+#define Dispenser_B_GPIO_Port GPIOA
+#define Lock_Pin GPIO_PIN_3
+#define Lock_GPIO_Port GPIOA
+#define Speaker_Pin GPIO_PIN_5
+#define Speaker_GPIO_Port GPIOA
 #define Blink_Pin GPIO_PIN_8
 #define Blink_GPIO_Port GPIOC
 #define SWDIO_Pin GPIO_PIN_13
