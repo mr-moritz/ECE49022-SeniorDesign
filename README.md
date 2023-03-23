@@ -14,7 +14,7 @@ Members:
 ## Project Idea
 Cary, short for Apothecary, is a personal pharmaceutical device that keeps track of your daily dosage times and amounts for up to eight different medications. It has a layer of security to keep your pharmaceuticals safe and away from the reach of children and teens, including a fingerprint scanner and an RFID tag used to authenticate each person using the device. This also make it possible for Cary to serve more than a single patient, such as a family, a group of patients at a hospital, the residents of a floor in a facilitated care facility, and more.
 
-<img align="right" width="300" height="300" src="https://github.com/emoritz-pu/ECE49022-SeniorDesign/blob/6936a9c46c97f558c24650895a03dad59b616d7b/Cary_Microcomputer/Cary_Device.png">
+<img align="left" style="margin-left: 50px" width="300" height="300" src="https://github.com/emoritz-pu/ECE49022-SeniorDesign/blob/6936a9c46c97f558c24650895a03dad59b616d7b/Cary_Microcomputer/Cary_Device.png">
 
 ## GUI
 The graphical user interface (GUI) is the main subsytem of the project with which the user will interact. The user will interact with the GUI for this project using a Raspberry Pi 7" touchscreen. The GUI was built using PySimpleGUI to create all button, menus, submenus, and layouts. A goal for this GUI is for it to be very simple to use, therefore for every action the user must never go past more than 3 submenus. The Python script to generate this GUI can be found at `Cary_Microcomputer/User_Interface.py`. The Raspberry Pi that is connected to our touchscreen will run the GUI application in kiosk mode, meaning that the only thing the user will see on the screen will be the GUI, front and center.
