@@ -27,11 +27,11 @@ while True:
     users = []
     regime = [[] for i in range(8)]
 
-    with open(os.path.abspath('users.txt')) as file:
+    with open(os.path.abspath('ECE49022-SeniorDesign/Cary_Microcomputer/users.txt')) as file:
         for line in file.readlines():
             users.append(line.strip('\n'))
     
-    with open(os.path.abspath('medications.txt')) as file:
+    with open(os.path.abspath('ECE49022-SeniorDesign/Cary_Microcomputer/medications.txt')) as file:
         for line in file.readlines():
             times = line.split(' ')
             index = int(times[0].strip('.')) - 1
