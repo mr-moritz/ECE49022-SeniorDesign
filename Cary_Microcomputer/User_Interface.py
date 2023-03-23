@@ -6,7 +6,7 @@ import PySimpleGUI as sg
 ###### Setting up the initial screen ####
 sg.theme('Light Brown 6')  # Set Theme
 fonts = ('Any', 20)
-image_file = os.path.abspath('Cary.png')
+image_file = os.path.abspath('ECE49022-SeniorDesign/Cary_Microcomputer/Cary.png')
 
 first_column = [[sg.Text('Hi, I\'m Cary! How can I help you today?', font=('Any', 20), justification='left', pad=((0, 0), (50, 0)))],
                 [sg.Text('Current Time is: ', font=('Any', 20), justification='center')],
