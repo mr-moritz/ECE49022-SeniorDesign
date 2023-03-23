@@ -170,7 +170,7 @@ while True:
                 minutes = ['00', '15', '30', '45']
                 win3_layout = [[sg.Text('Add a new medication schedule using the buttons below.', font=('Any', 25),
                                       expand_x=True, expand_y=False, size=(15, 2), justification='c', pad=(0, 20))],
-                             [sg.Text("Medication Number", size=(15,2)), sg.Spin([i + 1 for i in range(8)], expand_x=True, readonly=True, enable_events=True, text_color='black', expand_y=True, key='-IN1-', font=('Any', 20)),
+                             [sg.Text("Medication Number", size=(10,2)), sg.Spin([i + 1 for i in range(8)], expand_x=True, readonly=True, enable_events=True, text_color='black', expand_y=True, key='-IN1-', font=('Any', 20)),
                               sg.Text("Hour"), sg.Spin([i for i in range(1, 13, 1)], expand_x=True, readonly=True,
                                                                  enable_events=True, text_color='black', expand_y=True, key='-IN2-', font=('Any', 20)),
                               sg.Text("Minutes"), sg.Spin(minutes, expand_x=True, readonly=True,
