@@ -6,7 +6,7 @@ import PySimpleGUI as sg
 ###### Setting up the initial screen ####
 sg.theme('Light Brown 6')  # Set Theme
 fonts = ('Any', 20)
-image_file = os.path.abspath('Cary.png')
+image_file = os.path.abspath('ECE49022-SeniorDesign/Cary_Microcomputer/Cary.png')
 
 first_column = [[sg.Text('Hi, I\'m Cary! How can I help you today?', font=('Any', 20), justification='left', pad=((0, 0), (50, 0)))],
                 [sg.Text('Current Time is: ', font=('Any', 20), justification='center')],
@@ -19,7 +19,7 @@ first_column = [[sg.Text('Hi, I\'m Cary! How can I help you today?', font=('Any'
 second_column = [[sg.Image(filename=image_file)]]
 layout = [[sg.Column(first_column), sg.VSeparator(), sg.Column(second_column)]]
 window = sg.Window('Cary', layout, finalize=True,
-                   size=(800, 480), element_justification='c', location=(0, 1080))
+                   size=(800, 480), element_justification='c', location=(0, 0))
 window['timetext'].update(time.strftime('%I:%M %p'))
 
 while True:
@@ -27,11 +27,11 @@ while True:
     users = []
     regime = [[] for i in range(8)]
 
-    with open(os.path.abspath('users.txt')) as file:
+    with open(os.path.abspath('ECE49022-SeniorDesign/Cary_Microcomputer/users.txt')) as file:
         for line in file.readlines():
             users.append(line.strip('\n'))
     
-    with open(os.path.abspath('medications.txt')) as file:
+    with open(os.path.abspath('ECE49022-SeniorDesign/Cary_Microcomputer/medications.txt')) as file:
         for line in file.readlines():
             times = line.split(' ')
             index = int(times[0].strip('.')) - 1
@@ -60,7 +60,7 @@ while True:
             [sg.Column(win2_col1, pad=((0,0), (0, 0))), sg.VerticalSeparator(), sg.Column(win2_col2, pad=((0,0), (50, 0)))]]
 
         win2 = sg.Window('Users', win2_layout, modal=True,
-                         finalize=True, size=(800, 480), location=(0, 1080))
+                         finalize=True, size=(800, 480), location=(0, 0))
         while True:
             ev2, vals2 = win2.read()
             if ev2 == sg.WIN_CLOSED:
@@ -84,7 +84,7 @@ while True:
                               sg.Text("Role"), sg.Spin(roles, expand_x=True, readonly=False, enable_events=True, text_color='black', expand_y=True, key='-ROL-', font=('Any', 20))],
                              [sg.Button('Save', font=('Any', 20), expand_x=True, expand_y=False, size=(15, 2), key='-SAVE-', pad=(0, 20)),
                               sg.Button('Cancel', font=('Any', 20), expand_x=True, expand_y=False, size=(15, 2), pad=(0, 20), enable_events=True, key='-CANC-')]]
-                win3 = sg.Window('Add New User', win3_layout, finalize=False, size=(800, 480), element_justification='c', location=(0, 1080), modal=True)
+                win3 = sg.Window('Add New User', win3_layout, finalize=False, size=(800, 480), element_justification='c', location=(0, 0), modal=True)
                 while True:
                     ev3, vals3 = win3.read()
                     if ev3 == sg.WIN_CLOSED or ev3 == '-CANC-':
@@ -111,7 +111,7 @@ while True:
                               [sg.Button('Delete', font=('Any', 20), expand_x=True, expand_y=False, size=(15, 2), key='-DEL-', pad=(0, 20))],
                                [sg.Button('Done', font=('Any', 20), expand_x=True, expand_y=False, size=(15, 2), key='-CANC-', pad=(0, 0))]]
                 win3_layout = [[sg.Column(win3_col1, pad=((0,0), (50, 0))), sg.VerticalSeparator(), sg.Column(win3_col2, pad=((0,0), (100, 0)))]]
-                win3 = sg.Window('Remove a User', win3_layout, finalize=True, size=(800, 480), element_justification='c', location=(0, 1080), modal=True)
+                win3 = sg.Window('Remove a User', win3_layout, finalize=True, size=(800, 480), element_justification='c', location=(0, 0), modal=True)
                 while True:
                     ev3, vals3 = win3.read(timeout=100)
                     if ev3 == sg.WIN_CLOSED or ev3 == '-CANC-':
@@ -158,7 +158,7 @@ while True:
             [sg.Column(win2_col1, pad=((0,0), (0, 0))), sg.VerticalSeparator(), sg.Column(win2_col2, pad=((0,0), (50, 0)))]]
 
         win2 = sg.Window('Users', win2_layout, modal=True,
-                         finalize=True, size=(800, 480), location=(0, 1080)) 
+                         finalize=True, size=(800, 480), location=(0, 0)) 
         while True:
             ev2, vals2 = win2.Read()
             if ev2 == sg.WIN_CLOSED or ev2 == '-BACK-':
@@ -170,7 +170,7 @@ while True:
                 minutes = ['00', '15', '30', '45']
                 win3_layout = [[sg.Text('Add a new medication schedule using the buttons below.', font=('Any', 25),
                                       expand_x=True, expand_y=False, size=(15, 2), justification='c', pad=(0, 20))],
-                             [sg.Text("Medication Number", size=(15,2)), sg.Spin([i + 1 for i in range(8)], expand_x=True, readonly=True, enable_events=True, text_color='black', expand_y=True, key='-IN1-', font=('Any', 20)),
+                             [sg.Text("Medication Number", size=(10,2)), sg.Spin([i + 1 for i in range(8)], expand_x=True, readonly=True, enable_events=True, text_color='black', expand_y=True, key='-IN1-', font=('Any', 20)),
                               sg.Text("Hour"), sg.Spin([i for i in range(1, 13, 1)], expand_x=True, readonly=True,
                                                                  enable_events=True, text_color='black', expand_y=True, key='-IN2-', font=('Any', 20)),
                               sg.Text("Minutes"), sg.Spin(minutes, expand_x=True, readonly=True,
@@ -184,7 +184,7 @@ while True:
                               sg.Text(""), sg.Spin(['am', 'pm'], expand_x=True, readonly=True, enable_events=True, text_color='black', expand_y=True, key='-AMPM2-', font=('Any', 20))],
                              [sg.Button('Save', font=('Any', 20), expand_x=True, expand_y=False, size=(15, 2), key='-SAVE-', pad=(0, 40)),
                               sg.Button('Cancel', font=('Any', 20), expand_x=True, expand_y=False, size=(15, 2), key='-CANC-', pad=(0, 40))]]
-                win3 = sg.Window('Add New Medication', win3_layout, finalize=True, size=(800, 480), element_justification='c', location=(0, 1080), modal=True)
+                win3 = sg.Window('Add New Medication', win3_layout, finalize=True, size=(800, 480), element_justification='c', location=(0, 0), modal=True)
                 while True:
                     ev3, vals3 = win3.Read()
                     if ev3 == sg.WIN_CLOSED or ev3 == '-CANC-':
@@ -219,7 +219,7 @@ while True:
                               [sg.Button('Delete', font=('Any', 20), expand_x=True, expand_y=False, size=(15, 2), key='-DEL-', pad=(0, 20))],
                                [sg.Button('Done', font=('Any', 20), expand_x=True, expand_y=False, size=(15, 2), key='-CANC-', pad=(0, 0))]]
                 win3_layout = [[sg.Column(win3_col1, pad=((0,0), (50, 0))), sg.VerticalSeparator(), sg.Column(win3_col2, pad=((0,0), (100, 0)))]]
-                win3 = sg.Window('Remove a Medication', win3_layout, finalize=True, size=(800, 480), element_justification='c', location=(0, 1080), modal=True) 
+                win3 = sg.Window('Remove a Medication', win3_layout, finalize=True, size=(800, 480), element_justification='c', location=(0, 0), modal=True) 
                 while True:
                     ev3, vals3 = win3.read()
                     if ev3 == '-CANC-' or sg.WIN_CLOSED:
@@ -240,7 +240,7 @@ while True:
                         win3['-SEL-'].update([str(idx + 1) for idx, i in enumerate(regime) if len(i) > 0])
     elif event == '-REFILL-':
         # sg.popup_no_buttons("Unlocking!", font=('Any', 25), auto_close_duration=5)
-        sg.popup_auto_close("Unlocking!", font=('Any', 25), non_blocking=True, location=(0,1080))                
+        sg.popup_auto_close("Unlocking!", font=('Any', 25), non_blocking=True, location=(0,0))                
 
     # Update the time :
     window['timetext'].update(time.strftime('%I:%M %p'))
