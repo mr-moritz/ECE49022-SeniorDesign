@@ -75,10 +75,10 @@ void Error_Handler(void);
 #define SWDIO_GPIO_Port GPIOA
 #define SWCLK_Pin GPIO_PIN_14
 #define SWCLK_GPIO_Port GPIOA
-#define RPI_SCL_Pin GPIO_PIN_6
-#define RPI_SCL_GPIO_Port GPIOB
-#define RPI_SDA_Pin GPIO_PIN_7
-#define RPI_SDA_GPIO_Port GPIOB
+#define RPI_TX_Pin GPIO_PIN_6
+#define RPI_TX_GPIO_Port GPIOB
+#define RPI_RX_Pin GPIO_PIN_7
+#define RPI_RX_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

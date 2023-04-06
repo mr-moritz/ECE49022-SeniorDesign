@@ -21,47 +21,107 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define ACTION_INDEX 0
+#define AMOUNT_INDEX 1
+#define BUFFER_SIZE 2
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
+#define COMPUTE_SIZE(_BUFFER_) sizeof(_BUFFER_) / sizeof(*(_BUFFER_))
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-I2C_HandleTypeDef hi2c1;
-
 TIM_HandleTypeDef htim2;
 
-/* USER CODE BEGIN PV */
+UART_HandleTypeDef huart1;
 
+/* USER CODE BEGIN PV */
+uint8_t TXbuffer[BUFFER_SIZE] = {0x00};
+uint8_t RXbuffer[BUFFER_SIZE] = {0x00};
+#define TXsize COMPUTE_SIZE(TXbuffer)
+#define RXsize COMPUTE_SIZE(RXbuffer)
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_I2C1_Init(void);
 static void MX_TIM2_Init(void);
+static void MX_USART1_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-float dispenser_a_pwms[7] = { 24 , 40.25 , 62.75 , 74 , 85.25 , 107.75 , 124 };
-float dispenser_b_pwms[7] = { 124 , 107.75 , 85.25 , 74 , 62.75 , 40.25 , 24 };
-int lock_pwms[2] = { 74 , 124 };
+#define pwm_size 5
+float dispenser_a_pwms[pwm_size] = { 40.25 , 62.75 , 85.25 , 107.75 , 24.0};
+float dispenser_b_pwms[pwm_size] = { 107.75 , 85.25 , 62.75 , 40.25 , 24.0};
+float toggle_pwms[2] = { 24 , 74}; // {open , close}
 
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+  uint8_t action = RXbuffer[ACTION_INDEX];
+  uint8_t amount = RXbuffer[AMOUNT_INDEX];
+  TXbuffer[ACTION_INDEX] = action;
+  TXbuffer[AMOUNT_INDEX] = amount;
+  if (action >= 0x00 && action <= 0x03)
+  {
+	  /*
+	   * 0x00 = Slot 1 Chamber 1
+	   * 0x01 = Slot 2 Chamber 2
+	   * 0x02 = Slot 3 Chamber 3
+	   * 0x03 = Slot 4 Chamber 4
+	   */
+	  __HAL_TIM_SetCompare(&htim2 , TIM_CHANNEL_2 , dispenser_a_pwms[action % 4]);
+	  HAL_Delay(500 * amount);
+	  __HAL_TIM_SetCompare(&htim2 , TIM_CHANNEL_2 , dispenser_a_pwms[pwm_size - 1]);
+	  HAL_UART_Transmit(huart , TXbuffer , TXsize , HAL_MAX_DELAY);
+  }
+  if (action >= 0x04 && action <= 0x07)
+  {
+	  /*
+	   * 0x04 = Slot 1 Chamber 2
+	   * 0x05 = Slot 2 Chamber 2
+	   * 0x06 = Slot 3 Chamber 2
+	   * 0x07 = Slot 4 Chamber 2
+	   */
+	  __HAL_TIM_SetCompare(&htim2 , TIM_CHANNEL_3 , dispenser_b_pwms[action % 4]);
+	  HAL_Delay(500 * amount);
+	  __HAL_TIM_SetCompare(&htim2 , TIM_CHANNEL_3 , dispenser_b_pwms[pwm_size - 1]);
+	  HAL_UART_Transmit(huart , TXbuffer , TXsize , HAL_MAX_DELAY);
+  }
+  if (action == 0x08)
+  {
+	  /*
+	   * 0x08 = Interact Medicine Chambers
+	   */
+	  __HAL_TIM_SetCompare(&htim2 , TIM_CHANNEL_2 , toggle_pwms[amount]);
+	  __HAL_TIM_SetCompare(&htim2 , TIM_CHANNEL_3 , toggle_pwms[amount]);
+	  HAL_UART_Transmit(huart , TXbuffer , TXsize , HAL_MAX_DELAY);
+  }
+  if (action == 0x09)
+  {
+	  /*
+	   * 0x09 = Interact Medicine Tray
+	   */
+	  __HAL_TIM_SetCompare(&htim2 , TIM_CHANNEL_4 , toggle_pwms[amount]);
+	  HAL_UART_Transmit(huart , TXbuffer , TXsize , HAL_MAX_DELAY);
+  }
+  RXbuffer[ACTION_INDEX] = 0x00;
+  RXbuffer[AMOUNT_INDEX] = 0x00;
+  TXbuffer[ACTION_INDEX] = 0x00;
+  TXbuffer[AMOUNT_INDEX] = 0x00;
+  HAL_UART_Receive_IT(&huart1, RXbuffer, RXsize);
+}
 /* USER CODE END 0 */
 
 /**
@@ -92,18 +152,21 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_I2C1_Init();
   MX_TIM2_Init();
+  MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start(&htim2);
   HAL_TIM_PWM_Start(&htim2,TIM_CHANNEL_2);
   HAL_TIM_PWM_Start(&htim2,TIM_CHANNEL_3);
   HAL_TIM_PWM_Start(&htim2,TIM_CHANNEL_4);
+  __HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_2, toggle_pwms[0]);
+  __HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_3, toggle_pwms[0]);
+  __HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_4, toggle_pwms[0]);
+  HAL_UART_Receive_IT(&huart1, RXbuffer, RXsize);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  int button_press = 0;
   while (1)
   {
     /* USER CODE END WHILE */
@@ -111,14 +174,8 @@ int main(void)
     /* USER CODE BEGIN 3 */
 	  if (HAL_GPIO_ReadPin(GPIOA,User_Pin) == GPIO_PIN_SET)
 	  {
-		  button_press = (button_press + 1) % 7;
-		  __HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_2, dispenser_a_pwms[button_press]);
-		  __HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_3, dispenser_b_pwms[button_press]);
+		  HAL_GPIO_TogglePin(GPIOC , Blink_Pin);
 		  HAL_Delay(500);
-		  __HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_2, dispenser_a_pwms[0]);
-		  __HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_3, dispenser_b_pwms[7]);
-		  __HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_4, lock_pwms[button_press % 2]);
-		  HAL_GPIO_TogglePin(GPIOC,Blink_Pin);
 	  }
   }
   /* USER CODE END 3 */
@@ -161,60 +218,12 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_I2C1;
-  PeriphClkInit.I2c1ClockSelection = RCC_I2C1CLKSOURCE_HSI;
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART1;
+  PeriphClkInit.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK1;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
   }
-}
-
-/**
-  * @brief I2C1 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_I2C1_Init(void)
-{
-
-  /* USER CODE BEGIN I2C1_Init 0 */
-
-  /* USER CODE END I2C1_Init 0 */
-
-  /* USER CODE BEGIN I2C1_Init 1 */
-
-  /* USER CODE END I2C1_Init 1 */
-  hi2c1.Instance = I2C1;
-  hi2c1.Init.Timing = 0x2000090E;
-  hi2c1.Init.OwnAddress1 = 0;
-  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
-  hi2c1.Init.OwnAddress2 = 0;
-  hi2c1.Init.OwnAddress2Masks = I2C_OA2_NOMASK;
-  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
-  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
-  if (HAL_I2C_Init(&hi2c1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /** Configure Analogue filter
-  */
-  if (HAL_I2CEx_ConfigAnalogFilter(&hi2c1, I2C_ANALOGFILTER_ENABLE) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /** Configure Digital filter
-  */
-  if (HAL_I2CEx_ConfigDigitalFilter(&hi2c1, 0) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN I2C1_Init 2 */
-
-  /* USER CODE END I2C1_Init 2 */
-
 }
 
 /**
@@ -289,6 +298,41 @@ static void MX_TIM2_Init(void)
 }
 
 /**
+  * @brief USART1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART1_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART1_Init 0 */
+
+  /* USER CODE END USART1_Init 0 */
+
+  /* USER CODE BEGIN USART1_Init 1 */
+
+  /* USER CODE END USART1_Init 1 */
+  huart1.Instance = USART1;
+  huart1.Init.BaudRate = 9600;
+  huart1.Init.WordLength = UART_WORDLENGTH_8B;
+  huart1.Init.StopBits = UART_STOPBITS_1;
+  huart1.Init.Parity = UART_PARITY_NONE;
+  huart1.Init.Mode = UART_MODE_TX_RX;
+  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_UART_Init(&huart1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART1_Init 2 */
+
+  /* USER CODE END USART1_Init 2 */
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -296,6 +340,8 @@ static void MX_TIM2_Init(void)
 static void MX_GPIO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
+/* USER CODE BEGIN MX_GPIO_Init_1 */
+/* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOA_CLK_ENABLE();
@@ -318,6 +364,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(Blink_GPIO_Port, &GPIO_InitStruct);
 
+/* USER CODE BEGIN MX_GPIO_Init_2 */
+/* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */

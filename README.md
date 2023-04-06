@@ -9,7 +9,7 @@ Members:
 - William Jorge
 - Emily Moritz
 - Yuzhou Ren
-- Chris Stephen
+- Christopher Stephen
 
 ## Project Idea
 Cary, short for Apothecary, is a personal pharmaceutical device that keeps track of your daily dosage times and amounts for up to eight different medications. It has a layer of security to keep your pharmaceuticals safe and away from the reach of children and teens, including a fingerprint scanner and an RFID tag used to authenticate each person using the device. This also make it possible for Cary to serve more than a single patient, such as a family, a group of patients at a hospital, the residents of a floor in a facilitated care facility, and more.
