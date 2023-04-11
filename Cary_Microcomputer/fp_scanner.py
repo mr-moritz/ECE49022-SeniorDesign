@@ -1,5 +1,4 @@
-
-#import RPi.gpio as GPIO
+import RPi.GPIO as GPIO
 import time, serial
 
 FINGERPRINT_CAPACITY=     80      #Fingerprint module capacity
@@ -34,7 +33,7 @@ CMD_LOAD_CHAR=            0X0041  #Read fingerprint in module and save it in RAM
 CMD_UP_CHAR=              0X0042  #Upload the fingerprint template saved in RAMBUFFER to host 
 CMD_DOWN_CHAR=            0X0043  #Download fingerprint template to module designated RAMBUFFER
 CMD_DEL_CHAR=             0X0044  #Delete fingerprint in specific ID range 
-CMD_GET_EMPTY_ID=         0X0045  #Get the first registerable ID in specific ID range 
+CMD_GET_EMPTY_ID=         b'\x45\x00' #0X0045  #Get the first registerable ID in specific ID range 
 CMD_GET_STATUS=           0X0046  #Check if the designated ID has been registered 
 CMD_GET_BROKEN_ID=        0X0047  #Check whether there is damaged data in fingerprint library of specific range
 CMD_GET_ENROLL_COUNT=     0X0048  #Get the number of registered fingerprints in specific ID range 
@@ -83,7 +82,7 @@ def test_connection():
     recieved = ser.readline()
     ret, data = responsePayload(recieved)
 
-    #print(recieved)
+    print(recieved)
     
     if(ret == ERR_SUCCESS):
         print('connection test successfull')
@@ -152,14 +151,18 @@ def fingerDetect():
     ser.write(cks[0:1])
 
     recieved = ser.readline()
+    print(recieved)
     ret,data = responsePayload(recieved)
     if(ret == ERR_SUCCESS):
         if(data == b'\x00\x01'):
             print('finger detected')
+            return True
         else:
             print('no finger detected')
+            return False
     else:
         print('error')
+        return False
 
 
 def led_control(status, color):
@@ -167,18 +170,35 @@ def led_control(status, color):
     ser.flushOutput()
     
     print('led_control')
-    def switch(status):
-        if status == "on":
-            d_status = b'\x01'
-        elif status == 'off':
-            d_status = b'\x00'
-        elif status == 'breath':
-            d_status = b'\x02'
-        else:
-            d_status = b'\x00'
+
+    if status == "on":
+        d_status = b'\x01'
+    elif status == 'off':
+        d_status = b'\x00'
+    elif status == 'breath':
+        d_status = b'\x02'
+    else:
+        d_status = b'\x00'
+    
+    if color == 'red':
+        d_color = b'\x81'
+    elif color == 'yellow':
+        d_color = b'\x86'
+    elif color == 'green':
+        d_color = b'\x84'
+    elif color == 'blue':
+        d_color = b'\x81'
+    elif color == 'cyan':
+        d_color = b'\x85'
+    elif color == 'magenta':
+        d_color = b'\x83'
+    else:
+        d_color = b'\x87'
+    
+
 
     
-    data = b'\x03\x83'
+    data = d_status + d_color
     
     ser.write(CMD_PREFIX_CODE) #prefix: 2
     ser.write(b'\x00') # source device id: 1
@@ -197,6 +217,53 @@ def led_control(status, color):
     print(recieved)
 #     ser.write(b'U\xaa')
 #     ser.write()
+
+def getImage():
+    ser.flushInput()
+    ser.flushOutput()
+
+    ser.write(CMD_PREFIX_CODE)
+    ser.write(b'\x00')
+    ser.write(b'\x00')
+    ser.write( CMD_GET_IMAGE)
+    ser.write(b'\x00\x00')
+    ser.write(b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
+    cks = getCmdCKS(CMD_GET_IMAGE, b'\x00', b'\x00', b'\x00', b'\x00')
+    ser.write(cks[1:2])
+    ser.write(cks[0:1])
+
+    recieved = ser.readline()
+    ret, data = responsePayload(recieved)
+    print(recieved)
+
+    return ret
+
+def getEmptyID():
+    ser.flushInput()
+    ser.flushOutput()
+
+    data = b'\x50\x01'
+
+    ser.write(CMD_PREFIX_CODE)
+    ser.write(b'\x00')
+    ser.write(b'\x00')
+    ser.write(CMD_GET_EMPTY_ID)
+    ser.write(b'\x02\x00')
+    ser.write(data)
+    ser.write(b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
+    cks = getCmdCKS(CMD_GET_EMPTY_ID, b'\x00', b'\x00', data, b'\x02\x00')
+
+    ser.write(cks[1:2])
+    ser.write(cks[0:1])
+
+    recieved = ser.readline()
+    ret, data = responsePayload(recieved)
+    print(recieved)
+
+    return ret
+ 
+
+#def collectFingerprint()
 
 def responsePayload(recieved):          #0:2 2:3 3:4 4:5 5:6 6:7 7:8 8:9 9:10
     packet = recieved
@@ -315,11 +382,39 @@ try:
     ser.flushInput()
     ser.flushOutput()
     print('sending code')
-    #packet = bytearray()
     
-    #CMD_PREFIX_CODE
+    while(True):
+        recieved = ser.readline()
+        print(recieved)
 
     #test_connection()
+
+    #led_control("off", "blue")
+
+    #getEmptyID()
+
+    #COLLECT_NUMBER = 3
+    #i = 0
+
+    #print('collecting fingerprint')
+    #while(i < COLLECT_NUMBER):
+    #    led_control("breath", "blue")
+    #    print('please press down finger')
+    ##    wait(1000)
+    #    if(fingerDetect()):
+    #        wait(100)
+    #        if (getImage() != ERR_ID809):
+    #            led_control("breath", "yellow")
+    #            i = i + 1
+    #            print('sampling success')
+    #        else:
+    #            print("sampling failed")
+                
+
+
+
+
+
     
     #getDeviceInfo()
     #getDeviceID()
@@ -327,7 +422,7 @@ try:
     #while(True):
     #    fingerDetect()
 
-    led_control()
+    #led_control()
 
     #while(True):
     #    recieved = ser.readline()
@@ -364,6 +459,8 @@ try:
     #    print('connection test successfull')
     #else:
     #    print('connection test unsuccessfull')
+    
+    #0100
 
 except KeyboardInterrupt:
     ser.close()
