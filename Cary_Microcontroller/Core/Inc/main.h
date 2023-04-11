@@ -67,8 +67,8 @@ void Error_Handler(void);
 #define Dispenser_B_GPIO_Port GPIOA
 #define Lock_Pin GPIO_PIN_3
 #define Lock_GPIO_Port GPIOA
-#define Speaker_Pin GPIO_PIN_5
-#define Speaker_GPIO_Port GPIOA
+#define Command_Pin_Pin GPIO_PIN_5
+#define Command_Pin_GPIO_Port GPIOA
 #define Blink_Pin GPIO_PIN_8
 #define Blink_GPIO_Port GPIOC
 #define SWDIO_Pin GPIO_PIN_13

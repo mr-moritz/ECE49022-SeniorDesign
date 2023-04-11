@@ -45,9 +45,7 @@ TIM_HandleTypeDef htim2;
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
-uint8_t TXbuffer[BUFFER_SIZE] = {0x00};
 uint8_t RXbuffer[BUFFER_SIZE] = {0x00};
-#define TXsize COMPUTE_SIZE(TXbuffer)
 #define RXsize COMPUTE_SIZE(RXbuffer)
 /* USER CODE END PV */
 
@@ -66,61 +64,18 @@ static void MX_USART1_UART_Init(void);
 float dispenser_a_pwms[pwm_size] = { 40.25 , 62.75 , 85.25 , 107.75 , 24.0};
 float dispenser_b_pwms[pwm_size] = { 107.75 , 85.25 , 62.75 , 40.25 , 24.0};
 float toggle_pwms[2] = { 24 , 74}; // {open , close}
+uint8_t action = 0x00;
+uint8_t amount = 0x00;
+uint8_t command_flag = 0x00;
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-  uint8_t action = RXbuffer[ACTION_INDEX];
-  uint8_t amount = RXbuffer[AMOUNT_INDEX];
-  TXbuffer[ACTION_INDEX] = action;
-  TXbuffer[AMOUNT_INDEX] = amount;
-  if (action >= 0x00 && action <= 0x03)
-  {
-	  /*
-	   * 0x00 = Slot 1 Chamber 1
-	   * 0x01 = Slot 2 Chamber 2
-	   * 0x02 = Slot 3 Chamber 3
-	   * 0x03 = Slot 4 Chamber 4
-	   */
-	  __HAL_TIM_SetCompare(&htim2 , TIM_CHANNEL_2 , dispenser_a_pwms[action % 4]);
-	  HAL_Delay(500 * amount);
-	  __HAL_TIM_SetCompare(&htim2 , TIM_CHANNEL_2 , dispenser_a_pwms[pwm_size - 1]);
-	  HAL_UART_Transmit(huart , TXbuffer , TXsize , HAL_MAX_DELAY);
-  }
-  if (action >= 0x04 && action <= 0x07)
-  {
-	  /*
-	   * 0x04 = Slot 1 Chamber 2
-	   * 0x05 = Slot 2 Chamber 2
-	   * 0x06 = Slot 3 Chamber 2
-	   * 0x07 = Slot 4 Chamber 2
-	   */
-	  __HAL_TIM_SetCompare(&htim2 , TIM_CHANNEL_3 , dispenser_b_pwms[action % 4]);
-	  HAL_Delay(500 * amount);
-	  __HAL_TIM_SetCompare(&htim2 , TIM_CHANNEL_3 , dispenser_b_pwms[pwm_size - 1]);
-	  HAL_UART_Transmit(huart , TXbuffer , TXsize , HAL_MAX_DELAY);
-  }
-  if (action == 0x08)
-  {
-	  /*
-	   * 0x08 = Interact Medicine Chambers
-	   */
-	  __HAL_TIM_SetCompare(&htim2 , TIM_CHANNEL_2 , toggle_pwms[amount]);
-	  __HAL_TIM_SetCompare(&htim2 , TIM_CHANNEL_3 , toggle_pwms[amount]);
-	  HAL_UART_Transmit(huart , TXbuffer , TXsize , HAL_MAX_DELAY);
-  }
-  if (action == 0x09)
-  {
-	  /*
-	   * 0x09 = Interact Medicine Tray
-	   */
-	  __HAL_TIM_SetCompare(&htim2 , TIM_CHANNEL_4 , toggle_pwms[amount]);
-	  HAL_UART_Transmit(huart , TXbuffer , TXsize , HAL_MAX_DELAY);
-  }
-  RXbuffer[ACTION_INDEX] = 0x00;
-  RXbuffer[AMOUNT_INDEX] = 0x00;
-  TXbuffer[ACTION_INDEX] = 0x00;
-  TXbuffer[AMOUNT_INDEX] = 0x00;
-  HAL_UART_Receive_IT(&huart1, RXbuffer, RXsize);
+  action = RXbuffer[ACTION_INDEX];
+  amount = RXbuffer[AMOUNT_INDEX];
+  uint8_t local_action = action;
+  uint8_t local_amount = amount;
+  HAL_GPIO_WritePin(Command_Pin_GPIO_Port, Command_Pin_Pin, GPIO_PIN_SET);
+  command_flag = 0x01;
 }
 /* USER CODE END 0 */
 
@@ -172,11 +127,59 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  if (HAL_GPIO_ReadPin(GPIOA,User_Pin) == GPIO_PIN_SET)
+	  if (command_flag != 0x00)
 	  {
-		  HAL_GPIO_TogglePin(GPIOC , Blink_Pin);
-		  HAL_Delay(500);
+		  if (action >= 0x00 && action <= 0x03)
+		  {
+			  /*
+			   * 0x00 = Slot 1 Chamber 1
+			   * 0x01 = Slot 2 Chamber 2
+			   * 0x02 = Slot 3 Chamber 3
+			   * 0x03 = Slot 4 Chamber 4
+			   */
+			  __HAL_TIM_SetCompare(&htim2 , TIM_CHANNEL_2 , dispenser_a_pwms[action % 4]);
+			  HAL_Delay(500 * amount);
+			  __HAL_TIM_SetCompare(&htim2 , TIM_CHANNEL_2 , dispenser_a_pwms[pwm_size - 1]);
+			  HAL_GPIO_WritePin(Command_Pin_GPIO_Port, Command_Pin_Pin, GPIO_PIN_RESET);
+		  }
+		  if (action >= 0x04 && action <= 0x07)
+		  {
+			  /*
+			   * 0x04 = Slot 1 Chamber 2
+			   * 0x05 = Slot 2 Chamber 2
+			   * 0x06 = Slot 3 Chamber 2
+			   * 0x07 = Slot 4 Chamber 2
+			   */
+			  __HAL_TIM_SetCompare(&htim2 , TIM_CHANNEL_3 , dispenser_b_pwms[action % 4]);
+			  HAL_Delay(500 * amount);
+			  __HAL_TIM_SetCompare(&htim2 , TIM_CHANNEL_3 , dispenser_b_pwms[pwm_size - 1]);
+			  HAL_GPIO_WritePin(Command_Pin_GPIO_Port, Command_Pin_Pin, GPIO_PIN_RESET);
+		  }
+		  if (action == 0x08)
+		  {
+			  /*
+			   * 0x08 = Interact Medicine Chambers
+			   */
+			  __HAL_TIM_SetCompare(&htim2 , TIM_CHANNEL_2 , toggle_pwms[amount]);
+			  __HAL_TIM_SetCompare(&htim2 , TIM_CHANNEL_3 , toggle_pwms[amount]);
+			  HAL_GPIO_WritePin(Command_Pin_GPIO_Port, Command_Pin_Pin, GPIO_PIN_RESET);
+		  }
+		  if (action == 0x09)
+		  {
+			  /*
+			   * 0x09 = Interact Medicine Tray
+			   */
+			  __HAL_TIM_SetCompare(&htim2 , TIM_CHANNEL_4 , toggle_pwms[amount]);
+			  HAL_GPIO_WritePin(Command_Pin_GPIO_Port, Command_Pin_Pin, GPIO_PIN_RESET);
+		  }
+		  RXbuffer[ACTION_INDEX] = 0x00;
+		  RXbuffer[AMOUNT_INDEX] = 0x00;
+		  command_flag = 0x00;
+		  HAL_GPIO_WritePin(Command_Pin_GPIO_Port, Command_Pin_Pin, GPIO_PIN_RESET);
+		  HAL_UART_Receive_IT(&huart1, RXbuffer, RXsize);
 	  }
+	  HAL_GPIO_TogglePin(GPIOC , Blink_Pin);
+	  HAL_Delay(100);
   }
   /* USER CODE END 3 */
 }
@@ -274,10 +277,6 @@ static void MX_TIM2_Init(void)
   sConfigOC.Pulse = 0;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-  if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
-  {
-    Error_Handler();
-  }
   if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
   {
     Error_Handler();
@@ -349,6 +348,9 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(Command_Pin_GPIO_Port, Command_Pin_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(Blink_GPIO_Port, Blink_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin : User_Pin */
@@ -356,6 +358,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(User_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : Command_Pin_Pin */
+  GPIO_InitStruct.Pin = Command_Pin_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(Command_Pin_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : Blink_Pin */
   GPIO_InitStruct.Pin = Blink_Pin;
