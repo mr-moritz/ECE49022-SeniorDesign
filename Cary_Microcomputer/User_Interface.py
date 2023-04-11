@@ -8,6 +8,7 @@ sg.theme('Light Brown 6')  # Set Theme
 fonts = ('Any', 20)
 image_file = os.path.abspath('ECE49022-SeniorDesign/Cary_Microcomputer/Cary.png')
 
+# Initial screen layout
 first_column = [[sg.Text('Hi, I\'m Cary! How can I help you today?', font=('Any', 20), justification='left', pad=((0, 0), (50, 0)))],
                 [sg.Text('Current Time is: ', font=('Any', 20), justification='center')],
                 [sg.Text('', key='timetext', font=('Any', 20), justification='center')],
@@ -16,6 +17,7 @@ first_column = [[sg.Text('Hi, I\'m Cary! How can I help you today?', font=('Any'
                 [sg.Button('Update Users', font=('Any', 20), expand_x=True, expand_y=True, key='-UPD-', enable_events=True, size=(15, 2))],
                 [sg.Button('Refill', font=('Any', 20), expand_x=True, expand_y=True, size=(15, 2), key='-REFILL-')]]
 
+# Cary image
 second_column = [[sg.Image(filename=image_file)]]
 layout = [[sg.Column(first_column), sg.VSeparator(), sg.Column(second_column)]]
 window = sg.Window('Cary', layout, finalize=True,
@@ -40,8 +42,10 @@ while True:
 
     event, values = window.read(timeout=10)
 
-    if event in (sg.WIN_CLOSED, 'Exit'):
+    if event in (sg.WIN_CLOSED, 'Exit'):        # Window closed/program terminated
         break
+
+    # ----- USER UPDATING SCREEN ------ #
     if event == '-UPD-':
         window.Hide()
         win2_col1 = [[sg.Text('List of current users:', size=(20, 2), font=('Any', 25), justification='center')],
@@ -63,34 +67,40 @@ while True:
                          finalize=True, size=(800, 480), location=(0, 0))
         while True:
             ev2, vals2 = win2.read()
+            # Window closed
             if ev2 == sg.WIN_CLOSED:
                 win2.Close()
                 window.UnHide()
                 break
+            # Cancel button
             if ev2 == "-BACK-":
                 win2.Close()
                 window.UnHide()
+            # ADDING A NEW USER
             if ev2 == "-ADD-":
                 win2.Hide()
                 initials = list(string.ascii_uppercase)
                 roles = ["Caregiver", "User"]
                 win3_layout = [[sg.Text('Add a new user using the buttons below.', font=('Any', 25),
                                       expand_x=True, expand_y=False, size=(20, 2), justification='c', pad=(0, 20))],
-                             [sg.Text("First Initial"), sg.Spin(initials, expand_x=True, readonly=False, enable_events=True, text_color='black', expand_y=True, key='-IN1-', font=('Any', 20)),
-                              sg.Text("Second Initial"), sg.Spin(initials, expand_x=True, readonly=False,
-                                                                 enable_events=True, text_color='black', expand_y=True, key='-IN2-', font=('Any', 20)),
-                              sg.Text("Third Initial"), sg.Spin(initials, expand_x=True, readonly=False,
-                                                                enable_events=True, text_color='black', expand_y=True, key='-IN3-', font=('Any', 20)),
-                              sg.Text("Role"), sg.Spin(roles, expand_x=True, readonly=False, enable_events=True, text_color='black', expand_y=True, key='-ROL-', font=('Any', 20))],
-                             [sg.Button('Save', font=('Any', 20), expand_x=True, expand_y=False, size=(15, 2), key='-SAVE-', pad=(0, 20)),
-                              sg.Button('Cancel', font=('Any', 20), expand_x=True, expand_y=False, size=(15, 2), pad=(0, 20), enable_events=True, key='-CANC-')]]
+                                      [sg.Text("First Initial"), sg.Spin(initials, expand_x=True, readonly=False, enable_events=True, text_color='black', expand_y=True, key='-IN1-', font=('Any', 20)),
+                                      sg.Text("Second Initial"), sg.Spin(initials, expand_x=True, readonly=False,
+                                      enable_events=True, text_color='black', expand_y=True, key='-IN2-', font=('Any', 20)),
+                                      sg.Text("Third Initial"), sg.Spin(initials, expand_x=True, readonly=False,
+                                      enable_events=True, text_color='black', expand_y=True, key='-IN3-', font=('Any', 20))],
+                                      [sg.Text("Role"), sg.Spin(roles, expand_x=False, readonly=False, enable_events=True, text_color='black', expand_y=True, key='-ROL-', font=('Any', 20)),
+                                      sg.Button("Click here to scan your fingerprint.", enable_events=True, font=('Any', 20), size=(15,2), key='-FINGER-', pad=((50,0),(0,0)))],
+                                      [sg.Button('Save', font=('Any', 20), expand_x=True, expand_y=False, size=(15, 2), key='-SAVE-', pad=(0, 20)),
+                                      sg.Button('Cancel', font=('Any', 20), expand_x=True, expand_y=False, size=(15, 2), pad=(0, 20), enable_events=True, key='-CANC-')]]
                 win3 = sg.Window('Add New User', win3_layout, finalize=False, size=(800, 480), element_justification='c', location=(0, 0), modal=True)
                 while True:
                     ev3, vals3 = win3.read()
+                    # Cancel -- go back to previous screen
                     if ev3 == sg.WIN_CLOSED or ev3 == '-CANC-':
                         win3.Close()
                         win2.UnHide()
                         break
+                    # Saving new user after input
                     elif ev3 == '-SAVE-':
                         person = str(
                             vals3['-IN1-'] + vals3['-IN2-'] + vals3['-IN3-'] + " - " + vals3['-ROL-'])
@@ -100,6 +110,20 @@ while True:
                         win3.Close()
                         win2['-USR-'].update('\n'.join([str(i) for i in users]))
                         win2.UnHide()
+                    elif ev3 == '-FINGER-':
+                        win4_layout = [[sg.Text('Scan your fingerpring using the scanner below.', font=('Any', 20), size=(25,2), justification='center')],
+                        [sg.Image(filename='ECE49022-SeniorDesign/Cary_Microcomputer/fingerprint.png', size=(256,256),  pad=(0, 50))]]
+                        win3.Hide()
+                        win4 = sg.Window('Fingerprint', win4_layout, finalize=True, size=(800, 480), element_justification='c', location=(0,0), modal=True)
+                        while True:
+                            ev4, vals4 = win4.read()
+                            # Cancel -- go back to previous screen
+                            if ev4 == sg.WIN_CLOSED or ev4 == '-CANC-':
+                                win4.Close()
+                                win3.UnHide()
+                                break
+                            
+            # USER REMOVAL
             if ev2 == '-REM-':
                 win2.Hide()
                 win3_col1 = [[sg.Text('List of current users:', size=(15, 2), font=('Any', 25), justification='center')],
@@ -114,20 +138,12 @@ while True:
                 win3 = sg.Window('Remove a User', win3_layout, finalize=True, size=(800, 480), element_justification='c', location=(0, 0), modal=True)
                 while True:
                     ev3, vals3 = win3.read(timeout=100)
+                    # Window closed (cancel button)
                     if ev3 == sg.WIN_CLOSED or ev3 == '-CANC-':
                         win3.Close()
                         win2.UnHide()
                         break
-                    elif ev3 == '-SAVE-':
-                        person = str(
-                            vals3['-IN1-'] + vals3['-IN2-'] + vals3['-IN3-'] + " - " + vals3['-ROL-'])
-                        with open(os.path.abspath('users.txt'), 'a') as f:
-                            f.write(person + '\n')
-                            users.append(person)
-                        win3.Close()
-                        win2['-USR-'].update('\n'.join([str(i)
-                                             for i in users]))
-                        win2.UnHide()
+                    # Deleting selected user
                     elif ev3 == '-DEL-':
                         if len(users) == 0:
                             break
@@ -140,6 +156,7 @@ while True:
                         win2['-USR-'].update('\n'.join([str(i)
                                              for i in users])) 
                         win3['-SEL-'].update([str(i) for i in range(1, len(users))])
+    # Changing medication schedule
     elif event == '-SCH-':
         window.Hide()
         win2_col1 = [[sg.Text('List of current medications:', size=(20, 2), font=('Any', 25), justification='center')],
@@ -165,6 +182,7 @@ while True:
                 win2.Close()
                 window.UnHide()
                 break
+            # New medication input submenu
             elif ev2 == '-ADD-':
                 win2.Hide()
                 minutes = ['00', '15', '30', '45']
@@ -187,10 +205,12 @@ while True:
                 win3 = sg.Window('Add New Medication', win3_layout, finalize=True, size=(800, 480), element_justification='c', location=(0, 0), modal=True)
                 while True:
                     ev3, vals3 = win3.Read()
+                    # Window closed/cancel button
                     if ev3 == sg.WIN_CLOSED or ev3 == '-CANC-':
                         win3.Close()
                         win2.UnHide()
                         break
+                    # Saving new medication after input
                     elif ev3 == '-SAVE-':
                         time_interval = str(vals3['-IN2-']) + ':' + str(vals3['-IN3-'])
                         time_interval += str(vals3['-AMPM-']) + '-'
@@ -208,6 +228,7 @@ while True:
                         win3.Close()
                         win2['-REG-'].update('\n'.join([str(idx + 1) + '. ' + ', '.join(str(j) for j in i) for idx, i in enumerate(regime) if len(i) > 0]))
                         win2.UnHide()
+            # Removal of medication
             elif ev2 == '-REM-':
                 win2.Hide()
                 win3_col1 = [[sg.Text('List of current medications:', size=(20, 2), font=('Any', 25), justification='center')],
@@ -222,10 +243,12 @@ while True:
                 win3 = sg.Window('Remove a Medication', win3_layout, finalize=True, size=(800, 480), element_justification='c', location=(0, 0), modal=True) 
                 while True:
                     ev3, vals3 = win3.read()
+                    # Window closed/cancel button
                     if ev3 == '-CANC-' or sg.WIN_CLOSED:
                         win3.Close()
                         win2.UnHide()
                         break
+                    # Deleting selected medication and updating files
                     elif ev3 == '-DEL-':
                         to_pop = int(vals3['-SEL-']) - 1
                         regime[to_pop] = []
