@@ -111,6 +111,7 @@ while True:
                         win2['-USR-'].update('\n'.join([str(i) for i in users]))
                         win2.UnHide()
                     elif ev3 == '-FINGER-':
+                        # ----- Storing new user fingerprint ------ #
                         win4_layout = [[sg.Text('Scan your fingerpring using the scanner below.', font=('Any', 20), size=(25,2), justification='center')],
                         [sg.Image(filename='ECE49022-SeniorDesign/Cary_Microcomputer/fingerprint.png', size=(256,256),  pad=(0, 50))]]
                         win3.Hide()

@@ -4,15 +4,14 @@ import sys
 import RPi.GPIO as GPIO
 
 
+# Serial port for UART and GPIO setup
 ser = serial.Serial('/dev/serial0', baudrate=9600 , parity=serial.PARITY_NONE, bytesize=serial.EIGHTBITS, timeout=5, stopbits=serial.STOPBITS_ONE)
-
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(4, GPIO.IN)
 
 def unlock_cary():
 	# Sending data to the device
 	data = bytes([0x01, 0x02])
-	print(data)
 	time.sleep(1)
 	ser.flushInput()
 	ser.flushOutput()
@@ -24,29 +23,20 @@ def unlock_cary():
 		print('Error while writing data to serial port.')
 		pass
 	
+	# Sleep to allow GPIO signal to propagate
 	time.sleep(0.25)
 	
+	# Reading GPIO input
 	while GPIO.input(4) == 1:
 		print("Waiting for process to finish")
 		time.sleep(1)
 		
 	print("Process complete")
 	GPIO.cleanup()
-	
-	
-	# response = ser.readlines()
-	# print(response)
-	# if response:
-		# response = response.decode('utf-8')
-		# print(response)
-		# ser.close()
-		# pass
-		
-	# print('Reading from UART')
-	# response = ser.read(2)
-	# print(response.hex())
 
-	
+
+def trigger_fingerprint():
+	pass
 	
 
 if __name__ == "__main__":
