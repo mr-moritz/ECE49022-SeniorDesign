@@ -3,6 +3,13 @@ import serial
 import time
 import sys
 
+##########################################
+#	We have depreacted the use of this	 #
+#	file. All GPIO and UART 			 #
+#	functionality is done through		 #
+#	the uart.py file					 #
+##########################################
+
 ser = serial.Serial('/dev/serial0', baudrate=115200 , parity=serial.PARITY_NONE, bytesize=serial.EIGHTBITS, timeout=5)
 
 # Sending data to the device

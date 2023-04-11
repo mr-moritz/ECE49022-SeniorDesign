@@ -2,6 +2,7 @@ import os
 import time
 import string
 import PySimpleGUI as sg
+from fp_scanner import *
 
 ###### Setting up the initial screen ####
 sg.theme('Light Brown 6')  # Set Theme
@@ -113,7 +114,8 @@ while True:
                     elif ev3 == '-FINGER-':
                         # ----- Storing new user fingerprint ------ #
                         win4_layout = [[sg.Text('Scan your fingerpring using the scanner below.', font=('Any', 20), size=(25,2), justification='center')],
-                        [sg.Image(filename='ECE49022-SeniorDesign/Cary_Microcomputer/fingerprint.png', size=(256,256),  pad=(0, 50))]]
+                        [sg.Image(filename='ECE49022-SeniorDesign/Cary_Microcomputer/fingerprint.png', size=(256,256),  pad=(0, 50)),
+                         sg.Button('Save', font=('Any', 20), expand_x=True, expand_y=False, size=(15, 2), key='-SAVE-', pad=(0, 20))]]
                         win3.Hide()
                         win4 = sg.Window('Fingerprint', win4_layout, finalize=True, size=(800, 480), element_justification='c', location=(0,0), modal=True)
                         while True:
@@ -123,6 +125,8 @@ while True:
                                 win4.Close()
                                 win3.UnHide()
                                 break
+                            elif ev4 == '-SAVE-':
+                                pass
                             
             # USER REMOVAL
             if ev2 == '-REM-':

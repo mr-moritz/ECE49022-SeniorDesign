@@ -1,6 +1,12 @@
 from smbus2 import *
 import time
 
+##########################################
+#	We have deprecated the use of		 #
+#	I2C in our project. We are using	 #
+#	UART instead of I2C					 #
+##########################################
+
 DEVICE_BUS = 1
 DEVICE_ADDR = 0x30
 bus = SMBus(DEVICE_BUS)
