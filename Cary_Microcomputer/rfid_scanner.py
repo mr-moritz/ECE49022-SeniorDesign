@@ -12,11 +12,11 @@ def read_NFC():
 
     user = text 
 
-def write_NFC(user):
-    reader.write(user)
+def write_NFC(person):
+    reader.write(person)
 
-try:
-    read_NFC()
+# try:
+#     read_NFC()
 
-except KeyboardInterrupt:
-    GPIO.cleanup()
+# except KeyboardInterrupt:
+#     GPIO.cleanup()

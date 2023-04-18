@@ -2,9 +2,20 @@ import os
 import time
 import string
 import PySimpleGUI as sg
+import fp_scanner
+import rfid_scanner
+import serial
+import RPi.GPIO as GPIO
 # import datetime
 
 ###### Setting up the initial screen ####
+if (fp_scanner.test_connection()):
+    #IF connection is working
+    print('Success')
+else:
+    exit(0)
+    # if connection is not working
+
 sg.theme('Light Brown 6')  # Set Theme
 fonts = ('Any', 20)
 image_file = os.path.abspath('ECE49022-SeniorDesign/Cary_Microcomputer/Cary.png')
@@ -14,6 +25,7 @@ regime = [[] for i in range(8)]
 with open(os.path.abspath('ECE49022-SeniorDesign/Cary_Microcomputer/users.txt')) as file:
     for line in file.readlines():
         users.append(line.strip('\n'))
+    print(users)
     
 with open(os.path.abspath('ECE49022-SeniorDesign/Cary_Microcomputer/medications.txt')) as file:
     for line in file.readlines():
@@ -37,8 +49,6 @@ for med in regime:
         times = time_l.split('-')
         start_time = time.strptime(times[0], "%H:%M%p")
         end_time = time.strptime(times[1], "%H:%M%p")
-        print(start_time)
-        print(end_time)
         
         if start_time <= time.localtime(time.time()) <= end_time:
             print('found')
@@ -110,7 +120,7 @@ while True:
                                       sg.Button("Click here to scan your fingerprint.", enable_events=True, font=('Any', 20), size=(15,2), key='-FINGER-', pad=((50,0),(0,0)))],
                                       [sg.Button('Save', font=('Any', 20), expand_x=True, expand_y=False, size=(15, 2), key='-SAVE-', pad=(0, 20)),
                                       sg.Button('Cancel', font=('Any', 20), expand_x=True, expand_y=False, size=(15, 2), pad=(0, 20), enable_events=True, key='-CANC-')]]
-                win3 = sg.Window('Add New User', win3_layout, finalize=False, size=(800, 480), element_justification='c', location=(0, 0), modal=True)
+                win3 = sg.Window('Add New User', win3_layout, finalize=True, size=(800, 480), element_justification='c', location=(0, 0), modal=True)
                 while True:
                     ev3, vals3 = win3.read()
                     # Cancel -- go back to previous screen
@@ -122,24 +132,38 @@ while True:
                     elif ev3 == '-SAVE-':
                         person = str(
                             vals3['-IN1-'] + vals3['-IN2-'] + vals3['-IN3-'] + " - " + vals3['-ROL-'])
-                        with open(os.path.abspath('ECE49022-SeniorDesign/Cary_Microcomputer/users.txt'), 'a') as f:
-                            f.write(person + '\n')
-                            users.append(person)
-                        win3.Close()
-                        win2['-USR-'].update('\n'.join([str(i) for i in users]))
-                        win2.UnHide()
-                    elif ev3 == '-FINGER-':
-                        win4_layout = [[sg.Text('Scan your fingerpring using the scanner below.', font=('Any', 20), size=(25,2), justification='center')],
-                        [sg.Image(filename='ECE49022-SeniorDesign/Cary_Microcomputer/fingerprint.png', size=(256,256),  pad=(0, 50))]]
                         win3.Hide()
+                        win2['-USR-'].update('\n'.join([str(i) for i in users]))
+                        win4_layout = [[sg.Text('Scan your fingerpring using the scanner below.', font=('Any', 20), size=(25,2), justification='center', key='FP')],
+                        [sg.Image(filename='ECE49022-SeniorDesign/Cary_Microcomputer/fingerprint.png', size=(256,256),  pad=(0, 50))]]
+                        # win3.Hide()
                         win4 = sg.Window('Fingerprint', win4_layout, finalize=True, size=(800, 480), element_justification='c', location=(0,0), modal=True)
-                        while True:
-                            ev4, vals4 = win4.read()
-                            # Cancel -- go back to previous screen
-                            if ev4 == sg.WIN_CLOSED or ev4 == '-CANC-':
-                                win4.Close()
-                                win3.UnHide()
-                                break
+                        ID = fp_scanner.newFingerprint(1)
+                        if ID == b'\xff':
+                            print("ERROR")
+                        else:
+                            print("Fingerprint saved")
+                            print(ID)
+                            person += " - " + ID.decode("utf-8")
+                            with open(os.path.abspath('ECE49022-SeniorDesign/Cary_Microcomputer/users.txt'), 'a') as f:
+                                f.write(person + '\n')
+                                users.append(person)
+                            win4['FP'].update("Please scan your RFID tag now")
+                            rfid_scanner.write_NFC(person)
+                            win4.close()
+                            win3.close()
+                        fp_scanner.led_control("off","yellow")
+                        # while True:
+                        #     ev4, vals4 = win4.read()
+                        #     # Cancel -- go back to previous screen
+                        #     if ev4 == sg.WIN_CLOSED or ev4 == '-CANC-':
+                        #         win4.Close()
+                        #         win3.UnHide()
+                        #         break
+                        # win2.UnHide()
+                    elif ev3 == '-FINGER-':
+                        pass
+                        
                             
             # USER REMOVAL
             if ev2 == '-REM-':
@@ -163,6 +187,10 @@ while True:
                         break
                     # Deleting selected user
                     elif ev3 == '-DEL-':
+                        fpID = users[int(vals3['-SEL-']) - 1].split('-')
+                        fpID = fpID[2].strip(' ')
+                        fpID_bytes = fpID.encode('utf-8')
+                        fp_scanner.deleteFingerprint(fpID_bytes)
                         if len(users) == 0:
                             break
                         to_pop = int(vals3['-SEL-']) - 1

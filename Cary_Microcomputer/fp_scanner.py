@@ -79,6 +79,8 @@ def test_connection():
    
     recieved = ser.readline()
     ret, data = responsePayload(recieved)
+
+    #print(recieved)
     
     if(ret == ERR_SUCCESS):
         print('connection test successfull')
@@ -91,7 +93,7 @@ def getDeviceInfo():
     ser.flushInput()
     ser.flushOutput()
 
-    print('getting device info')
+    #print('getting device info')
 
     ser.write(CMD_PREFIX_CODE)
     ser.write(b'\x00')
@@ -105,13 +107,13 @@ def getDeviceInfo():
     ser.write(cks[0:1])
 
     recieved = ser.readline()
-    print(recieved)
+    #print(recieved)
 
 def getDeviceID():
     ser.flushInput()
     ser.flushOutput()
 
-    print('getting device ID')
+    #print('getting device ID')
     data = b'\x00\x00'
 
     ser.write(CMD_PREFIX_CODE)
@@ -126,7 +128,7 @@ def getDeviceID():
     ser.write(cks[0:1])
 
     recieved = ser.readline()
-    print(recieved)
+    #print(recieved)
 
 def getEnrollCount():
     ser.flushInput()
@@ -153,7 +155,7 @@ def getEnrollCount():
 
     if(ret == ERR_SUCCESS):
         ret = data
-    print(ret)
+    #print(ret)
     #print(data)
     return ret
 
@@ -164,7 +166,7 @@ def fingerDetect():
     ser.flushInput()
     ser.flushOutput()
 
-    print('detecting finger...')
+    #print('detecting finger...')
 
     ser.write(CMD_PREFIX_CODE)
     ser.write(b'\x00')
@@ -184,13 +186,13 @@ def fingerDetect():
 
     if(ret == ERR_SUCCESS):
         if(data == b'\x00\x00\x01'):
-            print('finger detected')
+            #print('finger detected')
             return True
         else:
-            print('no finger detected')
+            #print('no finger detected')
             return False
     else:
-        print('error')
+        #print('error')
         return False
 
 
@@ -198,7 +200,7 @@ def led_control(status, color):
     ser.flushInput()
     ser.flushOutput()
     
-    print('led_control')
+    #print('led_control')
 
     if status == "on":
         d_status = b'\x01'
@@ -290,7 +292,7 @@ def getEmptyID():
     return ret
 
 def storeFingerprint(ID):
-    print("storing fingerprint")
+    #print("storing fingerprint")
     ser.flushInput()
     ser.flushOutput()
 
@@ -348,7 +350,7 @@ def search():
 
     recieved = ser.readline()
     ret, data = responsePayload(recieved)
-    print(recieved)
+    #print(recieved)
 
     if(ret == ERR_SUCCESS):
         ret = data
@@ -476,30 +478,31 @@ def newFingerprint(COLLECT_NUMBER):
     ser.flushInput()
     ser.flushOutput()
 
-    print("storing fingerprint")
+    #print("storing fingerprint")
     i = 0
 
     ID = getEmptyID()
-    print(ID)
+    #print(ID)
 
-    print('collecting fingerprint')
+    #print('collecting fingerprint')
     while(i < COLLECT_NUMBER):
         led_control("breath", "blue")
-        print('please press down finger')
+        #print('please press down finger')
         if(fingerDetect()):
             if (getImage() != ERR_ID809):
                 led_control("breath", "yellow")
                 i = i + 1
-                print('sampling success')
+                #print('sampling success')
             else:
-                print("sampling failed")
+                #print("sampling failed")
+                return False
                 
     if(storeFingerprint(ID) != ERR_ID809):
-        print("storing success")
-        return True
+        #print("storing success")
+        return ID
     else:
-        print("storing failed")
-        return False
+        #print("storing failed")
+        return ERR_ID809
 
 def matchFingerprint():
     ser.flushInput()
@@ -510,22 +513,22 @@ def matchFingerprint():
     i = 0
 
     led_control("breath", "blue")
-    print('please press downfinger')
+    #print('please press downfinger')
     while(i < 1):
         if(fingerDetect()):
             if(getImage() != ERR_ID809):
                 led_control("breath", "yellow")
                 i = i + 1
-                print("sampling success")
+                #print("sampling success")
             else:
                 print("sampling failed")
     ret = search()
     if(ret != 0):
-        print("match found")
+        #print("match found")
         led_control("on", "green")
         result = True
     else:
-        print("no match found")
+        #print("no match found")
         led_control("on", "red")
         result = False
     
