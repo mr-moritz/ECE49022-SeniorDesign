@@ -78,7 +78,7 @@ while True:
         window.Hide()
         win2_col1 = [[sg.Text('List of current users:', size=(20, 2), font=('Any', 25), justification='center')],
                      [sg.Text('')],
-                     [sg.Text('\n'.join([str(i) for i in users]),
+                     [sg.Text('\n'.join([str(str(idx + 1) + '. ' + str(i).split('-')[0]) for idx, i in enumerate(users)]),
                               font=('Any', 15), justification='left', key='-USR-')]]
         win2_col2 = [[sg.Text('What would you like to do?',
                               font=('Any', 20), justification='center', size=(15,2))],
@@ -169,7 +169,7 @@ while True:
             if ev2 == '-REM-':
                 win2.Hide()
                 win3_col1 = [[sg.Text('List of current users:', size=(15, 2), font=('Any', 25), justification='center')],
-                     [sg.Text('\n'.join([str(str(idx + 1) + '. ' + user) for idx, user in enumerate(users)]),
+                     [sg.Text('\n'.join([str(str(idx + 1) + '. ' + str(user).split('-')[0]) for idx, user in enumerate(users)]),
                               font=('Any', 15), justification='left', key='-USR-')]]
                 win3_col2 = [[sg.Text('Select a User to Remove', font=('Any', 20), pad=((15,0), (25, 10)))],
                               [sg.Spin([str(i) for i in range(1, len(users) + 1)], expand_x=True, readonly=True,
