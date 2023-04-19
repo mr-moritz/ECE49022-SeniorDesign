@@ -74,12 +74,12 @@ while True:
     # GUI Button management
     event, values = window.read(timeout=10)
 
-    if flag_medDue:
-        sg.popup("A user is due for a medication! Please scan your fingerprint", font=('Any', 25), non_blocking=True, location=(0,0), line_width=25)
-        flag_medDue = 0
-        ret, id_fromFP = fp_scanner.matchFingerprint()
-        if ret == True:
-            uart.dispense(int(chamber))
+    # if flag_medDue:
+    #     sg.popup("A user is due for a medication! Please scan your fingerprint", font=('Any', 25), non_blocking=True, location=(0,0), line_width=25)
+    #     flag_medDue = 0
+    #     ret, id_fromFP = fp_scanner.matchFingerprint()
+    #     if ret == True:
+    #         uart.dispense(int(chamber))
 
 
     if event in (sg.WIN_CLOSED, 'Exit'):        # Window closed/program terminated
@@ -324,8 +324,19 @@ while True:
                         win3['-SEL-'].update([str(idx + 1) for idx, i in enumerate(regime) if len(i) > 0])
     elif event == '-REFILL-':
         # sg.popup_no_buttons("Unlocking!", font=('Any', 25), auto_close_duration=5)
+        # layout = [[sg.Text("Unlocking Cary!", size=(20, 2), font=('Any', 25), justification='center'),
+        #            sg.Button('Done', font=('Any', 20), expand_x=True, expand_y=False, size=(15, 2), key='-CANC-', pad=(0, 0))]]
+        # win2 = sg.Window('Unlock', layout, modal=True,
+        #                  finalize=True, size=(800, 480), location=(0, 0))
+        # window.Hide()
         uart.unlock_cary()
-        sg.popup("Unlocking!", font=('Any', 25), non_blocking=True, location=(0,0), modal=True)
+        popup = sg.Popup("Unlocked! Refill your medications now.", font=('Any', 25), non_blocking=False, location=(0,0), modal=True, custom_text='Done', keep_on_top=True)
+        # while True:
+        #     event, values = win2.read()
+        #     if event == sg.WIN_CLOSED or '-CANC-':
+        #         win2.Close()
+        #         window.UnHide()
+        #         break
         uart.lock_cary()        
 
 
