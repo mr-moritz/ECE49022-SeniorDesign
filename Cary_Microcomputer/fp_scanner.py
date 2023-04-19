@@ -49,7 +49,7 @@ ERR_ID809=                b'\xff'    #error
 
 FINGERPRINT_CAPACITY=     b'\x50'
 
-ser = serial.Serial(port = "/dev/serial0", baudrate = 115200, parity=serial.PARITY_NONE, bytesize=serial.EIGHTBITS, timeout = 2)
+ser = serial.Serial(port = "/dev/ttyUSB1", baudrate = 115200, parity=serial.PARITY_NONE, bytesize=serial.EIGHTBITS, timeout = 2)
 
 # contents of a command packet: 26 byes: 10 frame header, 14 data, 2 cks
 
@@ -344,7 +344,6 @@ def search():
         blank = blank + b'\x00'
     ser.write(blank)
     cks = getCmdCKS(CMD_SEARCH, b'\x00', b'\x00', data, length)
-
     ser.write(cks[1:2])
     ser.write(cks[0:1])
 
@@ -357,7 +356,30 @@ def search():
     
     return ret
 
-#def collectFingerprint()
+# def getFingerImage():
+
+#     ser.flushInput()
+#     ser.flushOutput()
+
+#     ser.write(CMD_PREFIX_CODE)
+#     ser.write(b'\x00')
+#     ser.write(b'\x00')
+#     ser.write(CMD_GET_IMAGE)
+#     ser.write(b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
+#     cks = getCmdCKS(CMD_GET_IMAGE, b'\x00', b'\x00', b'\x00', b'\x00')
+
+#     ser.write(cks[1:2])
+#     ser.write(cks[0:1])
+
+#     recieved = ser.readline()
+#     ret, data = responsePayload(recieved)
+
+#     if(ret == ERR_SUCCESS):
+#         ret = data
+        
+#     return ret
+
+
 
 def responsePayload(recieved):          #0:2 2:3 3:4 4:5 5:6 6:7 7:8 8:9 9:10
     packet = recieved
@@ -474,14 +496,14 @@ def getRcmCKS(packet):
     
     return cks[0:2]
 
-def newFingerprint(COLLECT_NUMBER):
+def newFingerprint(COLLECT_NUMBER, user_no):
     ser.flushInput()
     ser.flushOutput()
 
     #print("storing fingerprint")
     i = 0
 
-    ID = getEmptyID()
+    ID = (int.from_bytes(getEmptyID(), 'big') + user_no).to_bytes(1,'big')
     #print(ID)
 
     #print('collecting fingerprint')

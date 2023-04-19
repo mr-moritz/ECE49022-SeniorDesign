@@ -6,6 +6,7 @@ import fp_scanner
 import rfid_scanner
 import serial
 import RPi.GPIO as GPIO
+import uart
 # import datetime
 
 ###### Setting up the initial screen ####
@@ -21,11 +22,12 @@ fonts = ('Any', 20)
 image_file = os.path.abspath('ECE49022-SeniorDesign/Cary_Microcomputer/Cary.png')
 users = []
 regime = [[] for i in range(8)]
+# print(fp_scanner.getEnrollCount())
 
 with open(os.path.abspath('ECE49022-SeniorDesign/Cary_Microcomputer/users.txt')) as file:
     for line in file.readlines():
         users.append(line.strip('\n'))
-    print(users)
+    # print(users)
     
 with open(os.path.abspath('ECE49022-SeniorDesign/Cary_Microcomputer/medications.txt')) as file:
     for line in file.readlines():
@@ -34,6 +36,10 @@ with open(os.path.abspath('ECE49022-SeniorDesign/Cary_Microcomputer/medications.
         for i in range(1, len(times)):
             regime[index].append((times[i].strip(',')).strip('\n'))
 
+# print("please scan finger")
+# lol, bool_fp = fp_scanner.matchFingerprint()
+# print(lol)
+# print(bool_fp)
 # Initial screen layout
 first_column = [[sg.Text('Hi, I\'m Cary! How can I help you today?', font=('Any', 20), justification='left', pad=((0, 0), (50, 0)))],
                 [sg.Text('Current Time is: ', font=('Any', 20), justification='center')],
@@ -44,18 +50,18 @@ first_column = [[sg.Text('Hi, I\'m Cary! How can I help you today?', font=('Any'
                 [sg.Button('Refill', font=('Any', 20), expand_x=True, expand_y=True, size=(15, 2), key='-REFILL-')]]
 
 flag_medDue = 0
-for med in regime:
+for idx, med in enumerate(regime):
     for time_l in med:
         times = time_l.split('-')
-        start_time = time.strptime(times[0], "%H:%M%p")
-        end_time = time.strptime(times[1], "%H:%M%p")
-        
-        if start_time <= time.localtime(time.time()) <= end_time:
-            print('found')
-            flag_medDue = 1
+        print(times)
+        start_time = time.strptime(times[0], "%H:%M%p").tm_hour
+        end_time = time.strptime(times[1], "%H:%M%p").tm_hour
 
-if flag_medDue:
-    sg.popup_auto_close("A user is due for a medication!", font=('Any', 25), non_blocking=True, location=(0,0)) 
+        if start_time <= (time.localtime().tm_hour % 12) <= end_time:
+            flag_medDue = 1
+            chamber = idx
+        else:
+            print('not found')
 
 # Cary image
 second_column = [[sg.Image(filename=image_file)]]
@@ -68,7 +74,13 @@ while True:
     # GUI Button management
     event, values = window.read(timeout=10)
 
-    
+    if flag_medDue:
+        sg.popup("A user is due for a medication! Please scan your fingerprint", font=('Any', 25), non_blocking=True, location=(0,0), line_width=25)
+        flag_medDue = 0
+        ret, id_fromFP = fp_scanner.matchFingerprint()
+        if ret == True:
+            uart.dispense(int(chamber))
+
 
     if event in (sg.WIN_CLOSED, 'Exit'):        # Window closed/program terminated
         break
@@ -133,22 +145,25 @@ while True:
                         person = str(
                             vals3['-IN1-'] + vals3['-IN2-'] + vals3['-IN3-'] + " - " + vals3['-ROL-'])
                         win3.Hide()
-                        win2['-USR-'].update('\n'.join([str(i) for i in users]))
-                        win4_layout = [[sg.Text('Scan your fingerpring using the scanner below.', font=('Any', 20), size=(25,2), justification='center', key='FP')],
+                        win2['-USR-'].update('\n'.join([str(str(idx + 1) + '. ' + str(user).split('-')[0]) for idx, user in enumerate(users)]))
+                        win4_layout = [[sg.Text('Scan your fingerprint using the scanner below.', font=('Any', 20), size=(25,2), justification='center', key='FP')],
                         [sg.Image(filename='ECE49022-SeniorDesign/Cary_Microcomputer/fingerprint.png', size=(256,256),  pad=(0, 50))]]
                         # win3.Hide()
                         win4 = sg.Window('Fingerprint', win4_layout, finalize=True, size=(800, 480), element_justification='c', location=(0,0), modal=True)
-                        ID = fp_scanner.newFingerprint(1)
+                        ID = fp_scanner.newFingerprint(3, len(users))
                         if ID == b'\xff':
                             print("ERROR")
                         else:
                             print("Fingerprint saved")
                             print(ID)
-                            person += " - " + ID.decode("utf-8")
+                            person += " - " + ID.decode('utf-8', errors='replace')
                             with open(os.path.abspath('ECE49022-SeniorDesign/Cary_Microcomputer/users.txt'), 'a') as f:
                                 f.write(person + '\n')
                                 users.append(person)
-                            win4['FP'].update("Please scan your RFID tag now")
+                            win4.close()
+                            win4_layout = [[sg.Text('Scan your RFID using the scanner below.', font=('Any', 20), size=(25,2), justification='center', key='FP')],
+                                            [sg.Image(filename='ECE49022-SeniorDesign/Cary_Microcomputer/contactless.png', size=(256,256),  pad=(0, 50))]]
+                            win4 = sg.Window('RFID', win4_layout, finalize=True, size=(800, 480), element_justification='c', location=(0,0), modal=True)
                             rfid_scanner.write_NFC(person)
                             win4.close()
                             win3.close()
@@ -199,8 +214,7 @@ while True:
                             for person in users:
                                 f.write(person + '\n')
                         win3['-USR-'].update('\n'.join([str(str(idx + 1) + '. ' + user) for idx, user in enumerate(users)]))
-                        win2['-USR-'].update('\n'.join([str(i)
-                                             for i in users])) 
+                        win2['-USR-'].update('\n'.join([str(str(idx + 1) + '. ' + user) for idx, user in enumerate(users)])) 
                         win3['-SEL-'].update([str(i) for i in range(1, len(users))])
     # Changing medication schedule
     elif event == '-SCH-':
@@ -310,7 +324,10 @@ while True:
                         win3['-SEL-'].update([str(idx + 1) for idx, i in enumerate(regime) if len(i) > 0])
     elif event == '-REFILL-':
         # sg.popup_no_buttons("Unlocking!", font=('Any', 25), auto_close_duration=5)
-        sg.popup_auto_close("Unlocking!", font=('Any', 25), non_blocking=True, location=(0,0))                
+        uart.unlock_cary()
+        sg.popup("Unlocking!", font=('Any', 25), non_blocking=True, location=(0,0), modal=True)
+        uart.lock_cary()        
+
 
     # Update the time :
     window['timetext'].update(time.strftime('%I:%M %p'))

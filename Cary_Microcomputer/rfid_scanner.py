@@ -14,6 +14,7 @@ def read_NFC():
 
 def write_NFC(person):
     reader.write(person)
+    print("RFID successfully written!")
 
 # try:
 #     read_NFC()
