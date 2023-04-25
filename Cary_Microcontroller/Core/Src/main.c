@@ -129,6 +129,7 @@ int main(void)
     /* USER CODE BEGIN 3 */
 	  if (command_flag != 0x00)
 	  {
+		  HAL_Delay(250);
 		  if (action >= 0x00 && action <= 0x03)
 		  {
 			  /*
@@ -140,7 +141,6 @@ int main(void)
 			  __HAL_TIM_SetCompare(&htim2 , TIM_CHANNEL_2 , dispenser_a_pwms[action % 4]);
 			  HAL_Delay(500 * amount);
 			  __HAL_TIM_SetCompare(&htim2 , TIM_CHANNEL_2 , dispenser_a_pwms[pwm_size - 1]);
-			  HAL_GPIO_WritePin(Command_Pin_GPIO_Port, Command_Pin_Pin, GPIO_PIN_RESET);
 		  }
 		  if (action >= 0x04 && action <= 0x07)
 		  {
@@ -153,7 +153,6 @@ int main(void)
 			  __HAL_TIM_SetCompare(&htim2 , TIM_CHANNEL_3 , dispenser_b_pwms[action % 4]);
 			  HAL_Delay(500 * amount);
 			  __HAL_TIM_SetCompare(&htim2 , TIM_CHANNEL_3 , dispenser_b_pwms[pwm_size - 1]);
-			  HAL_GPIO_WritePin(Command_Pin_GPIO_Port, Command_Pin_Pin, GPIO_PIN_RESET);
 		  }
 		  if (action == 0x08)
 		  {
@@ -162,7 +161,6 @@ int main(void)
 			   */
 			  __HAL_TIM_SetCompare(&htim2 , TIM_CHANNEL_2 , toggle_pwms[amount]);
 			  __HAL_TIM_SetCompare(&htim2 , TIM_CHANNEL_3 , toggle_pwms[amount]);
-			  HAL_GPIO_WritePin(Command_Pin_GPIO_Port, Command_Pin_Pin, GPIO_PIN_RESET);
 		  }
 		  if (action == 0x09)
 		  {
@@ -170,7 +168,6 @@ int main(void)
 			   * 0x09 = Interact Medicine Tray
 			   */
 			  __HAL_TIM_SetCompare(&htim2 , TIM_CHANNEL_4 , toggle_pwms[amount]);
-			  HAL_GPIO_WritePin(Command_Pin_GPIO_Port, Command_Pin_Pin, GPIO_PIN_RESET);
 		  }
 		  RXbuffer[ACTION_INDEX] = 0x00;
 		  RXbuffer[AMOUNT_INDEX] = 0x00;
@@ -178,8 +175,7 @@ int main(void)
 		  HAL_GPIO_WritePin(Command_Pin_GPIO_Port, Command_Pin_Pin, GPIO_PIN_RESET);
 		  HAL_UART_Receive_IT(&huart1, RXbuffer, RXsize);
 	  }
-	  HAL_GPIO_TogglePin(GPIOC , Blink_Pin);
-	  HAL_Delay(100);
+	  //HAL_Delay(250);
   }
   /* USER CODE END 3 */
 }

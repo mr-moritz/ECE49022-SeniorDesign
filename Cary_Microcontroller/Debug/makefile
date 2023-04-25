@@ -60,8 +60,8 @@ all: main-build
 main-build: Cary_Microcontroller.elf secondary-outputs
 
 # Tool invocations
-Cary_Microcontroller.elf Cary_Microcontroller.map: $(OBJS) $(USER_OBJS) C:\Users\chris\Documents\Purdue\Spring\ Term\ 2023\ECE\ 49022\Cary\ECE49022-SeniorDesign\Cary_Microcontroller\STM32F051R8TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "Cary_Microcontroller.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m0 -T"C:\Users\chris\Documents\Purdue\Spring Term 2023\ECE 49022\Cary\ECE49022-SeniorDesign\Cary_Microcontroller\STM32F051R8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Cary_Microcontroller.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Cary_Microcontroller.elf Cary_Microcontroller.map: $(OBJS) $(USER_OBJS) C:\Users\chris\Documents\Purdue\Spring_2023\ECE_49022\Cary\ECE49022-SeniorDesign\Cary_Microcontroller\STM32F051R8TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "Cary_Microcontroller.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m0 -T"C:\Users\chris\Documents\Purdue\Spring_2023\ECE_49022\Cary\ECE49022-SeniorDesign\Cary_Microcontroller\STM32F051R8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Cary_Microcontroller.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
