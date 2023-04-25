@@ -23,38 +23,36 @@ CMD_DEVICE_INFO=          b'\x04\x00' #0X0004  #Read device information
 CMD_SET_MODULE_SN=        0X0008  #Set module serial number 
 CMD_GET_MODULE_SN =       0X0009  #Read module serial number
 CMD_ENTER_STANDBY_STATE=  0X000C  #Enter sleep mode 
-CMD_GET_IMAGE=            0X0020  #Capture fingerprint image 
+CMD_GET_IMAGE=            b'\x20\x00' #0X0020  #Capture fingerprint image 
 CMD_FINGER_DETECT=        b'\x21\x00' #0X0021  #Detect fingerprint 
 CMD_UP_IMAGE_CODE=        0X0022  #Upload fingerprint image to host 
 CMD_DOWN_IMAGE=           0X0023  #Download fingerprint image to module 
 CMD_SLED_CTRL=            b'\x24\x00' #0X0024  #Control collector backlight 
-CMD_STORE_CHAR=           0X0040  #Save fingerprint template data into fingerprint library 
+CMD_STORE_CHAR=           b'\x40\x00' #0X0040  #Save fingerprint template data into fingerprint library 
 CMD_LOAD_CHAR=            0X0041  #Read fingerprint in module and save it in RAMBUFFER temporarily  
 CMD_UP_CHAR=              0X0042  #Upload the fingerprint template saved in RAMBUFFER to host 
 CMD_DOWN_CHAR=            0X0043  #Download fingerprint template to module designated RAMBUFFER
-CMD_DEL_CHAR=             0X0044  #Delete fingerprint in specific ID range 
+CMD_DEL_CHAR=             b'\x44\x00' #0X0044  #Delete fingerprint in specific ID range 
 CMD_GET_EMPTY_ID=         b'\x45\x00' #0X0045  #Get the first registerable ID in specific ID range 
 CMD_GET_STATUS=           0X0046  #Check if the designated ID has been registered 
 CMD_GET_BROKEN_ID=        0X0047  #Check whether there is damaged data in fingerprint library of specific range
-CMD_GET_ENROLL_COUNT=     0X0048  #Get the number of registered fingerprints in specific ID range 
-CMD_GET_ENROLLED_ID_LIST= 0X0049  #Get registered ID list
+CMD_GET_ENROLL_COUNT=     b'\x48\x00' #0X0048  #Get the number of registered fingerprints in specific ID range 
+CMD_GET_ENROLLED_ID_LIST= b'\x49\x00' #0X0049  #Get registered ID list
 CMD_GENERATE=             0X0060  #Generate template from the fingerprint images saved in IMAGEBUFFER temporarily 
 CMD_MERGE=                0X0061  #Synthesize fingerprint template data 
 CMD_MATCH=                0X0062  #Compare templates in 2 designated RAMBUFFER 
-CMD_SEARCH=               0X0063  #1:N Recognition in specific ID range 
+CMD_SEARCH=               b'\x63\x00' #0X0063  #1:N Recognition in specific ID range 
 CMD_VERIFY=               0X0064  #Compare specific RAMBUFFER template with specific ID template in fingerprint library 
 
 ERR_SUCCESS=              b'\x00'    #Command processed successfully 
 ERR_ID809=                b'\xff'    #error
 
-ser = serial.Serial(port = "/dev/serial0", baudrate = 115200, parity=serial.PARITY_NONE, bytesize=serial.EIGHTBITS, timeout = 2)
+FINGERPRINT_CAPACITY=     b'\x50'
+
+ser = serial.Serial(port = "/dev/ttyUSB1", baudrate = 115200, parity=serial.PARITY_NONE, bytesize=serial.EIGHTBITS, timeout = 2)
 
 # contents of a command packet: 26 byes: 10 frame header, 14 data, 2 cks
-# cmd_prefix_code: b'U\xaa,
-# source device id: x00
-# destination device id: x00
-# command code: four bytes 
-# data length: 
+
 if(ser.isOpen() == False):
     ser.open()
 ser.flushInput()
@@ -82,7 +80,7 @@ def test_connection():
     recieved = ser.readline()
     ret, data = responsePayload(recieved)
 
-    print(recieved)
+    #print(recieved)
     
     if(ret == ERR_SUCCESS):
         print('connection test successfull')
@@ -95,7 +93,7 @@ def getDeviceInfo():
     ser.flushInput()
     ser.flushOutput()
 
-    print('getting device info')
+    #print('getting device info')
 
     ser.write(CMD_PREFIX_CODE)
     ser.write(b'\x00')
@@ -109,13 +107,13 @@ def getDeviceInfo():
     ser.write(cks[0:1])
 
     recieved = ser.readline()
-    print(recieved)
+    #print(recieved)
 
 def getDeviceID():
     ser.flushInput()
     ser.flushOutput()
 
-    print('getting device ID')
+    #print('getting device ID')
     data = b'\x00\x00'
 
     ser.write(CMD_PREFIX_CODE)
@@ -130,14 +128,45 @@ def getDeviceID():
     ser.write(cks[0:1])
 
     recieved = ser.readline()
-    print(recieved)
+    #print(recieved)
+
+def getEnrollCount():
+    ser.flushInput()
+    ser.flushOutput()
+
+    data =  b'\x01' + b'\x00' + FINGERPRINT_CAPACITY + b'\x00'
+
+    ser.write(CMD_PREFIX_CODE)
+    ser.write(b'\x00')
+    ser.write(b'\x00')
+    ser.write(CMD_GET_ENROLL_COUNT)
+    ser.write(b'\x04\x00')
+    ser.write(data)
+    ser.write(b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
+    cks = getCmdCKS(CMD_GET_ENROLL_COUNT, ERR_SUCCESS, ERR_SUCCESS, data, b'\x04\x00' )
+    ser.write(cks[1:2])
+    ser.write(cks[0:1])
+
+    recieved = ser.readline()
+    ret, data = responsePayload(recieved)
+    #print(recieved)
+
+    data = int.from_bytes(data, 'big')
+
+    if(ret == ERR_SUCCESS):
+        ret = data
+    #print(ret)
+    #print(data)
+    return ret
+
+
 
 #works
 def fingerDetect():
     ser.flushInput()
     ser.flushOutput()
 
-    print('detecting finger...')
+    #print('detecting finger...')
 
     ser.write(CMD_PREFIX_CODE)
     ser.write(b'\x00')
@@ -151,17 +180,19 @@ def fingerDetect():
     ser.write(cks[0:1])
 
     recieved = ser.readline()
-    print(recieved)
     ret,data = responsePayload(recieved)
+    #print(recieved)
+    #print(data)
+
     if(ret == ERR_SUCCESS):
-        if(data == b'\x00\x01'):
-            print('finger detected')
+        if(data == b'\x00\x00\x01'):
+            #print('finger detected')
             return True
         else:
-            print('no finger detected')
+            #print('no finger detected')
             return False
     else:
-        print('error')
+        #print('error')
         return False
 
 
@@ -169,7 +200,7 @@ def led_control(status, color):
     ser.flushInput()
     ser.flushOutput()
     
-    print('led_control')
+    #print('led_control')
 
     if status == "on":
         d_status = b'\x01'
@@ -214,9 +245,6 @@ def led_control(status, color):
 
     
     recieved = ser.readline()
-    print(recieved)
-#     ser.write(b'U\xaa')
-#     ser.write()
 
 def getImage():
     ser.flushInput()
@@ -234,7 +262,6 @@ def getImage():
 
     recieved = ser.readline()
     ret, data = responsePayload(recieved)
-    print(recieved)
 
     return ret
 
@@ -258,20 +285,111 @@ def getEmptyID():
 
     recieved = ser.readline()
     ret, data = responsePayload(recieved)
-    print(recieved)
+
+    if(ret == ERR_SUCCESS):
+        return data
 
     return ret
- 
 
-#def collectFingerprint()
+def storeFingerprint(ID):
+    #print("storing fingerprint")
+    ser.flushInput()
+    ser.flushOutput()
+
+    data = ID
+    blank = b''
+    length = b''
+    length = len(data).to_bytes(2,'big')
+    length = length[1:2] + length[0:1]
+
+    ser.write(CMD_PREFIX_CODE)
+    ser.write(b'\x00')
+    ser.write(b'\x00')
+    ser.write(CMD_STORE_CHAR)
+    ser.write(length)
+    ser.write(data)
+    for i in range(0, 16-len(data)):
+        blank = blank + b'\x00'
+    ser.write(blank)
+    cks = getCmdCKS(CMD_STORE_CHAR, b'\x00', b'\x00', data, length)
+
+    ser.write(cks[1:2])
+    ser.write(cks[0:1])
+
+    recieved = ser.readline()
+    ret, data = responsePayload(recieved)
+    print(recieved)
+
+    if(ret == ERR_SUCCESS):
+        ret = data
+    
+    return ret
+
+def search():
+    ser.flushInput()
+    ser.flushOutput()
+
+    data = b'\x00' + FINGERPRINT_CAPACITY + b'\x00' + b'\x01' + b'\x00\x00'
+    length = len(data).to_bytes(2, 'big')
+    length = length[1:2] + length[0:1]
+    blank = b''
+
+    ser.write(CMD_PREFIX_CODE)
+    ser.write(b'\x00')
+    ser.write(b'\x00')
+    ser.write(CMD_SEARCH)
+    ser.write(length)
+    ser.write(data)
+    for i in range(0, 16-len(data)):
+        blank = blank + b'\x00'
+    ser.write(blank)
+    cks = getCmdCKS(CMD_SEARCH, b'\x00', b'\x00', data, length)
+    ser.write(cks[1:2])
+    ser.write(cks[0:1])
+
+    recieved = ser.readline()
+    ret, data = responsePayload(recieved)
+    #print(recieved)
+
+    if(ret == ERR_SUCCESS):
+        ret = data
+    
+    return ret
+
+# def getFingerImage():
+
+#     ser.flushInput()
+#     ser.flushOutput()
+
+#     ser.write(CMD_PREFIX_CODE)
+#     ser.write(b'\x00')
+#     ser.write(b'\x00')
+#     ser.write(CMD_GET_IMAGE)
+#     ser.write(b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
+#     cks = getCmdCKS(CMD_GET_IMAGE, b'\x00', b'\x00', b'\x00', b'\x00')
+
+#     ser.write(cks[1:2])
+#     ser.write(cks[0:1])
+
+#     recieved = ser.readline()
+#     ret, data = responsePayload(recieved)
+
+#     if(ret == ERR_SUCCESS):
+#         ret = data
+        
+#     return ret
+
+
 
 def responsePayload(recieved):          #0:2 2:3 3:4 4:5 5:6 6:7 7:8 8:9 9:10
     packet = recieved
     data = b''
     if(recieved[0:2] == RCM_PREFIX_CODE): #b'\xaaU\x01\x00\x01\x00\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x03\x01'
         dataLen = int.from_bytes((recieved[7:8]+recieved[6:7]),'big')
-        for i in range(dataLen, 1, -1):
-            data = data + recieved[8+i:9+i]
+        #print(dataLen)
+        for i in range(dataLen, 0, -1):
+            #print(recieved[7+i:8+i])
+            data = data + recieved[9+i:10+i]
         ret = recieved[8:9]
         cks = packet[24:26]
         if((cks[1:2]+cks[0:1]) != getRcmCKS(packet)):
@@ -378,120 +496,86 @@ def getRcmCKS(packet):
     
     return cks[0:2]
 
-try:
+def newFingerprint(COLLECT_NUMBER, user_no):
     ser.flushInput()
     ser.flushOutput()
-    print('sending code')
-    
-    while(True):
-        recieved = ser.readline()
-        print(recieved)
 
-    #test_connection()
+    #print("storing fingerprint")
+    i = 0
 
-    #led_control("off", "blue")
-
-    #getEmptyID()
-
-    #COLLECT_NUMBER = 3
-    #i = 0
+    ID = (int.from_bytes(getEmptyID(), 'big') + user_no).to_bytes(1,'big')
+    #print(ID)
 
     #print('collecting fingerprint')
-    #while(i < COLLECT_NUMBER):
-    #    led_control("breath", "blue")
-    #    print('please press down finger')
-    ##    wait(1000)
-    #    if(fingerDetect()):
-    #        wait(100)
-    #        if (getImage() != ERR_ID809):
-    #            led_control("breath", "yellow")
-    #            i = i + 1
-    #            print('sampling success')
-    #        else:
-    #            print("sampling failed")
+    while(i < COLLECT_NUMBER):
+        led_control("breath", "blue")
+        #print('please press down finger')
+        if(fingerDetect()):
+            if (getImage() != ERR_ID809):
+                led_control("breath", "yellow")
+                i = i + 1
+                #print('sampling success')
+            else:
+                #print("sampling failed")
+                return False
                 
+    if(storeFingerprint(ID) != ERR_ID809):
+        #print("storing success")
+        return ID
+    else:
+        #print("storing failed")
+        return ERR_ID809
 
+def matchFingerprint():
+    ser.flushInput()
+    ser.flushOutput()
 
+    result = False
 
+    i = 0
 
-
+    led_control("breath", "blue")
+    #print('please press downfinger')
+    while(i < 1):
+        if(fingerDetect()):
+            if(getImage() != ERR_ID809):
+                led_control("breath", "yellow")
+                i = i + 1
+                #print("sampling success")
+            else:
+                print("sampling failed")
+    ret = search()
+    if(ret != 0):
+        #print("match found")
+        led_control("on", "green")
+        result = True
+    else:
+        #print("no match found")
+        led_control("on", "red")
+        result = False
     
-    #getDeviceInfo()
-    #getDeviceID()
+    return result, ret
 
-    #while(True):
-    #    fingerDetect()
+def deleteFingerprint(ID):
+    ser.flushInput()
+    ser.flushOutput()
 
-    #led_control()
+    if(ID == "delete all"):
+        data = FINGERPRINT_CAPACITY + b'\x00\x01\x00'
+    else:
+        data = ID + b'\x00\x00\x00'
 
-    #while(True):
-    #    recieved = ser.readline()
-    #    print(recieved)
-    #    if(recieved == (b'U\xaa\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01')):
-    #        ser.write(b'\xaaU\x01\x00\x01\x00\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x03\x01')
-    #    recieved = ser.readline()
-    #    print(recieved)
-    #FingerDetect()
-    
-    
-    #while(True):
-    #    test_connection()
-        #led_control()
-    #    recieved = ser.readline()
-    #    print(recieved)
-    
-    #ser.write(packet) # 0X
-        #print('sent: ', cw)
-    # type, cmd, payload, length
-    #prefix, payload, sid, did, cmd, len
-    #prefix = CMD_PREFIX_CODE, payload= 0x0000, SID = 0, DID = 0x0, cmd = CMD_TEST_CONNECTION, len = 0x0 
-    
-        #ser.write(CMD_TEST_CONNECTION) # 0X0001 -> 0000 0000 0001
-        #ser.write(0X00)
-        #ser.write(0)
-    #while(True):
-    #    print('reading')
-    #    time.sleep(0.5)
-    #    recieved = ser.readline()
-    #    if(recieved):
-    #        print(recieved)
-    #if (recieved == ERR_SUCCESS):
-    #    print('connection test successfull')
-    #else:
-    #    print('connection test unsuccessfull')
-    
-    #0100
+    ser.write(CMD_PREFIX_CODE)
+    ser.write(b'\x00')
+    ser.write(b'\x00')
+    ser.write(CMD_DEL_CHAR)
+    ser.write(b'\x04\x00')
+    ser.write(data)
+    ser.write(b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
+    cks = getCmdCKS(CMD_DEL_CHAR, b'\x00', b'\x00', data, b'\x04\x00')
+    ser.write(cks[1:2])
+    ser.write(cks[0:1])
 
-except KeyboardInterrupt:
-    ser.close()
-    print('stopped')
-    
-    #command packet structure
-    #typedef struct{
-  #uint16_t  PREFIX;
-  #uint8_t   SID;
-  #uint8_t   DID;
-  #uint16_t  CMD;
-  #uint16_t  LEN;
-  #uint8_t payload[0];
-#}__attribute__ ((packed)) sCmdPacketHeader_t, *pCmdPacketHeader_t;    
+    recieved = ser.readline()
+    print(recieved)
 
-    #response packet structure
-    #typedef struct{
-  #uint16_t  PREFIX;
-  #uint8_t   SID;
-  #uint8_t   DID;
-  #uint16_t  RCM;
-  #uint16_t  LEN;
-  #uint16_t  RET;
-  #uint8_t   payload[0];
-#}__attribute__ ((packed)) sRcmPacketHeader_t, *pRcmPacketHeader_t;
-
-    #sends an is connected packet
-
-
-
-finally:
-    ser.close()
-    print('stopped')
-    #GPIO.cleanup()
