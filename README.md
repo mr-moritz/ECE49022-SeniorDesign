@@ -7,7 +7,7 @@ This repository serves to contain the code for the pill dispenser project of ECE
 
 Members:
 - William Jorge
-- Emily Moritz
+- Michael Moritz
 - Yuzhou Ren
 - Christopher Stephen
 
